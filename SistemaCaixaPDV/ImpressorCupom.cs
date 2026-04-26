@@ -22,7 +22,8 @@ namespace SistemaCaixaPDV
             if (tipoImpressora == "58mm") colunas = 26;
             if (tipoImpressora == "A4") colunas = 80;
 
-            string pastaXml = @"C:\SistemaPDV\XML_Gerados\NFCe";
+            // CORREÇÃO: Caminho dinâmico para garantir portabilidade do sistema
+            string pastaXml = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "XML_Gerados", "NFCe");
             string chaveSefaz = "";
             string protocoloSefaz = "";
             string qrCodeSefaz = "";
@@ -233,7 +234,7 @@ namespace SistemaCaixaPDV
                     catch { }
                 }
 
-                // Adiciona uma folga grande no final para a guilhotina passar por baixo do QR Code!
+                // Adiciona uma folga grande no final para a guilhotina passar por baixo do QR Code
                 alturaTotal += 80;
 
                 // 3. A MÁGICA DA BOBINA: Cria um papel personalizado no tamanho EXATO

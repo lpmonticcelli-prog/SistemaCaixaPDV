@@ -1,7 +1,7 @@
 ﻿<Window x:Class="SistemaCaixaPDV.TelaCadastroProduto"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Cadastro de produtos e serviços" Height="700" Width="1000"
+        Title="WV Systems - Cadastro de Produtos e Serviços" Height="700" Width="1000"
         WindowStartupLocation="CenterScreen" Background="#F0F0F0"
         KeyDown="Window_KeyDown" Loaded="Window_Loaded">
 
@@ -37,24 +37,28 @@
                         <TextBlock Text="Excluir" FontSize="10" Foreground="Red" FontWeight="Bold" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Button>
-                <Button Width="80" Height="60" Margin="2" Background="Transparent" BorderThickness="0" Cursor="Hand">
+
+                <Button Width="80" Height="60" Margin="2" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="btnImprimirEtiqueta_Click">
                     <StackPanel>
                         <TextBlock Text="🏷️" FontSize="24" HorizontalAlignment="Center"/>
                         <TextBlock Text="Imprimir&#x0a;Etiqueta" TextAlignment="Center" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Button>
+
                 <Button Width="80" Height="60" Margin="2" Background="Transparent" BorderThickness="0" Cursor="Hand">
                     <StackPanel>
                         <TextBlock Text="📑" FontSize="24" HorizontalAlignment="Center"/>
                         <TextBlock Text="Duplicar&#x0a;Registro" TextAlignment="Center" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Button>
-                <Button Width="100" Height="60" Margin="2" Background="Transparent" BorderThickness="0" Cursor="Hand">
+
+                <Button Width="100" Height="60" Margin="2" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="btnImprimirRelatorio_Click">
                     <StackPanel>
                         <TextBlock Text="🖨️" FontSize="24" HorizontalAlignment="Center"/>
                         <TextBlock Text="Imprimir Rel.&#x0a;de Produtos" TextAlignment="Center" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Button>
+
                 <Button Width="80" Height="60" Margin="20,2,2,2" Background="Transparent" BorderThickness="0" Click="btnFechar_Click" Cursor="Hand">
                     <StackPanel>
                         <TextBlock Text="Fechar" FontSize="16" Foreground="Red" FontWeight="Bold" HorizontalAlignment="Center"/>
@@ -240,18 +244,194 @@
 
                             <TextBlock Text="Estoque Atual:" FontWeight="Bold" HorizontalAlignment="Center"/>
                             <TextBox x:Name="txtEstoqueAtual" Text="0" FontSize="20" FontWeight="Bold" TextAlignment="Center" Background="#FEF08A" Height="35"/>
-                            <Button Content="Alterar estoque (F5)" Height="25" Margin="0,5,0,20"/>
-
-                            <CheckBox Content="Desativar produto?" Foreground="Gray" HorizontalAlignment="Center"/>
                         </StackPanel>
                     </Border>
                 </Grid>
             </TabItem>
 
-            <TabItem Header="Histórico de Compra" FontWeight="Bold" FontSize="14"/>
-            <TabItem Header="Histórico de Venda" FontWeight="Bold" FontSize="14"/>
-            <TabItem Header="Conferência Estoque" FontWeight="Bold" FontSize="14"/>
-            <TabItem Header="Grade/Variação" FontWeight="Bold" FontSize="14"/>
+            <TabItem Header="Histórico de Compra" FontWeight="Bold" FontSize="14">
+                <Grid Background="#F8FAFC" Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Background="#E0F2FE" CornerRadius="5" Padding="10" Margin="0,0,0,15" BorderBrush="#BAE6FD" BorderThickness="1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Orientation="Horizontal" Grid.Column="0">
+                                <StackPanel Margin="0,0,10,0">
+                                    <TextBlock Text="Fornecedor:" FontWeight="Bold" FontSize="11" Foreground="#0369A1"/>
+                                    <TextBox x:Name="txtEntradaFornecedor" Width="150" Height="25"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,10,0">
+                                    <TextBlock Text="Nº NF-e:" FontWeight="Bold" FontSize="11" Foreground="#0369A1"/>
+                                    <TextBox x:Name="txtEntradaNFe" Width="100" Height="25"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,10,0">
+                                    <TextBlock Text="Qtd Entrada:" FontWeight="Bold" FontSize="11" Foreground="#0369A1"/>
+                                    <TextBox x:Name="txtEntradaQtd" Width="70" Height="25" TextAlignment="Center"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,15,0">
+                                    <TextBlock Text="Custo Un. (R$):" FontWeight="Bold" FontSize="11" Foreground="#0369A1"/>
+                                    <TextBox x:Name="txtEntradaCusto" Width="80" Height="25" TextAlignment="Center"/>
+                                </StackPanel>
+                                <Button Content="➕ Lançar Manual" Background="#10B981" Foreground="White" FontWeight="Bold" Padding="10,0" Height="25" Margin="0,15,0,0" Click="btnLancarEntradaManual_Click" Cursor="Hand"/>
+                            </StackPanel>
+
+                            <Button Grid.Column="1" Content="📄 Importar XML NF-e" Background="#F59E0B" Foreground="White" FontWeight="Bold" Padding="15,0" Height="35" Click="btnImportarXML_Click" Cursor="Hand"/>
+                        </Grid>
+                    </Border>
+
+                    <TextBlock Grid.Row="1" Text="Últimas entradas (compras) registradas para este produto:" FontWeight="SemiBold" Foreground="#1E3A8A" Margin="0,0,0,10" FontSize="14"/>
+
+                    <DataGrid x:Name="gridHistoricoCompras" Grid.Row="2" AutoGenerateColumns="False" IsReadOnly="True" 
+                              Background="White" AlternatingRowBackground="#F1F5F9" RowHeight="28"
+                              HorizontalGridLinesBrush="#E2E8F0" VerticalGridLinesBrush="#E2E8F0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Data da Compra" Binding="{Binding DataCompra}" Width="140"/>
+                            <DataGridTextColumn Header="Fornecedor" Binding="{Binding Fornecedor}" Width="*"/>
+                            <DataGridTextColumn Header="Nº NFe" Binding="{Binding NumeroNFe}" Width="100"/>
+                            <DataGridTextColumn Header="Qtd" Binding="{Binding Quantidade}" Width="80"/>
+                            <DataGridTextColumn Header="Custo Un." Binding="{Binding CustoUnitario}" Width="110"/>
+                            <DataGridTextColumn Header="Total" Binding="{Binding Total}" Width="120"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Histórico de Venda" FontWeight="Bold" FontSize="14">
+                <Grid Background="#F8FAFC" Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Últimas saídas (vendas) registradas para este produto:" FontWeight="SemiBold" Foreground="#1E3A8A" Margin="0,0,0,10" FontSize="14"/>
+                    <DataGrid x:Name="gridHistoricoVendas" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" 
+                              Background="White" AlternatingRowBackground="#F1F5F9" RowHeight="28"
+                              HorizontalGridLinesBrush="#E2E8F0" VerticalGridLinesBrush="#E2E8F0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Data da Venda" Binding="{Binding DataVenda}" Width="140"/>
+                            <DataGridTextColumn Header="Nº Venda" Binding="{Binding NumVenda}" Width="100"/>
+                            <DataGridTextColumn Header="Cliente" Binding="{Binding Cliente}" Width="*"/>
+                            <DataGridTextColumn Header="Qtd" Binding="{Binding Quantidade}" Width="80"/>
+                            <DataGridTextColumn Header="Valor Un." Binding="{Binding ValorUnitario}" Width="110"/>
+                            <DataGridTextColumn Header="Total" Binding="{Binding Total}" Width="120"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <Border Grid.Row="2" Background="#E0F2FE" Padding="10" Margin="0,10,0,0" CornerRadius="5">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <TextBlock Text="Total Vendido (Qtd): " FontWeight="Bold" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="txtTotalQtdVenda" Text="0,00" FontWeight="Black" Foreground="#0284C7" FontSize="18" Margin="0,0,25,0" VerticalAlignment="Center"/>
+
+                            <TextBlock Text="Valor Arrecadado: " FontWeight="Bold" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="txtTotalValorVenda" Text="R$ 0,00" FontWeight="Black" Foreground="#166534" FontSize="18" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Conferência Estoque" FontWeight="Bold" FontSize="14">
+                <Grid Background="#F8FAFC" Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Background="#FEF3C7" CornerRadius="5" Padding="10" Margin="0,0,0,15" BorderBrush="#FDE047" BorderThickness="1">
+                        <Grid>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                <StackPanel Margin="0,0,10,0">
+                                    <TextBlock Text="Tipo de Ajuste:" FontWeight="Bold" FontSize="11" Foreground="#B45309"/>
+                                    <ComboBox x:Name="cbAjusteTipo" Width="170" Height="25">
+                                        <ComboBoxItem Content="Entrada Avulsa" IsSelected="True"/>
+                                        <ComboBoxItem Content="Saída (Perda/Avaria)"/>
+                                        <ComboBoxItem Content="Balanço (Substituir)"/>
+                                    </ComboBox>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,10,0">
+                                    <TextBlock Text="Quantidade:" FontWeight="Bold" FontSize="11" Foreground="#B45309"/>
+                                    <TextBox x:Name="txtAjusteQtd" Width="80" Height="25" TextAlignment="Center"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,15,0">
+                                    <TextBlock Text="Motivo / Observação:" FontWeight="Bold" FontSize="11" Foreground="#B45309"/>
+                                    <TextBox x:Name="txtAjusteMotivo" Width="200" Height="25"/>
+                                </StackPanel>
+                                <Button Content="⚖️ Lançar Ajuste" Background="#D97706" Foreground="White" FontWeight="Bold" Padding="10,0" Height="25" Margin="0,15,0,0" Click="btnLancarAjuste_Click" Cursor="Hand"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <TextBlock Grid.Row="1" Text="Extrato de movimentações manuais e balanços:" FontWeight="SemiBold" Foreground="#1E3A8A" Margin="0,0,0,10" FontSize="14"/>
+
+                    <DataGrid x:Name="gridHistoricoEstoque" Grid.Row="2" AutoGenerateColumns="False" IsReadOnly="True" 
+                              Background="White" AlternatingRowBackground="#FFFBEB" RowHeight="28"
+                              HorizontalGridLinesBrush="#E2E8F0" VerticalGridLinesBrush="#E2E8F0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Data do Ajuste" Binding="{Binding DataHora}" Width="140"/>
+                            <DataGridTextColumn Header="Tipo de Movimento" Binding="{Binding Tipo}" Width="160"/>
+                            <DataGridTextColumn Header="Qtd" Binding="{Binding Quantidade}" Width="80"/>
+                            <DataGridTextColumn Header="Motivo" Binding="{Binding Motivo}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Grade/Variação" FontWeight="Bold" FontSize="14">
+                <Grid Background="#F8FAFC" Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Background="#F3E8FF" CornerRadius="5" Padding="10" Margin="0,0,0,15" BorderBrush="#D8B4FE" BorderThickness="1">
+                        <Grid>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                <StackPanel Margin="0,0,10,0">
+                                    <TextBlock Text="Atributo (Ex: Cor, Tamanho):" FontWeight="Bold" FontSize="11" Foreground="#6B21A8"/>
+                                    <ComboBox x:Name="cbVariacaoAtributo" Width="170" Height="25" IsEditable="True">
+                                        <ComboBoxItem Content="Tamanho" IsSelected="True"/>
+                                        <ComboBoxItem Content="Cor"/>
+                                        <ComboBoxItem Content="Voltagem"/>
+                                        <ComboBoxItem Content="Sabor"/>
+                                    </ComboBox>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,10,0">
+                                    <TextBlock Text="Valor (Ex: M, Azul, 110V):" FontWeight="Bold" FontSize="11" Foreground="#6B21A8"/>
+                                    <TextBox x:Name="txtVariacaoValor" Width="150" Height="25"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,10,0">
+                                    <TextBlock Text="Cód. Barras (Opcional):" FontWeight="Bold" FontSize="11" Foreground="#6B21A8"/>
+                                    <TextBox x:Name="txtVariacaoCodigo" Width="130" Height="25"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,15,0">
+                                    <TextBlock Text="Estoque:" FontWeight="Bold" FontSize="11" Foreground="#6B21A8"/>
+                                    <TextBox x:Name="txtVariacaoEstoque" Width="70" Height="25" TextAlignment="Center" Text="0"/>
+                                </StackPanel>
+                                <Button Content="➕ Adicionar Variação" Background="#8B5CF6" Foreground="White" FontWeight="Bold" Padding="10,0" Height="25" Margin="0,15,0,0" Click="btnAdicionarVariacao_Click" Cursor="Hand"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <DataGrid x:Name="gridVariacoes" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" 
+                              Background="White" AlternatingRowBackground="#FAF5FF" RowHeight="28"
+                              HorizontalGridLinesBrush="#E2E8F0" VerticalGridLinesBrush="#E2E8F0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Atributo" Binding="{Binding Atributo}" Width="120"/>
+                            <DataGridTextColumn Header="Valor" Binding="{Binding Valor}" Width="150"/>
+                            <DataGridTextColumn Header="Código de Barras" Binding="{Binding CodigoBarras}" Width="180"/>
+                            <DataGridTextColumn Header="Estoque" Binding="{Binding Estoque}" Width="100"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
         </TabControl>
     </Grid>
 </Window>

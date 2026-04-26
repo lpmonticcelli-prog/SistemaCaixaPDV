@@ -1,0 +1,47 @@
+﻿<Window x:Class="SistemaCaixaPDV.JanelaRelatorio"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Relatório de Produtos" Height="800" Width="800" WindowStartupLocation="CenterScreen" Background="White" Loaded="Window_Loaded">
+    <Grid Margin="30">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0">
+                <TextBlock x:Name="txtNomeLoja" Text="NOME DA EMPRESA" FontSize="26" FontWeight="Black" Foreground="#1E3A8A"/>
+                <TextBlock Text="RELATÓRIO GERAL DE PRODUTOS E ESTOQUE" FontSize="16" FontWeight="Bold" Margin="0,5,0,0"/>
+                <TextBlock x:Name="txtDataHora" Text="Emitido em: 00/00/0000 00:00" FontSize="12" Foreground="Gray" Margin="0,2,0,0"/>
+            </StackPanel>
+
+            <Button x:Name="btnImprimir" Grid.Column="1" Content="🖨️ IMPRIMIR" Width="130" Height="40" Background="#2563EB" Foreground="White" FontWeight="Bold" Cursor="Hand" Click="btnImprimir_Click" VerticalAlignment="Top"/>
+        </Grid>
+
+        <DataGrid x:Name="gridRelatorio" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True"
+                  Background="White" RowHeight="28" HeadersVisibility="Column"
+                  GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#E2E8F0" BorderBrush="#CBD5E1" BorderThickness="1">
+            <DataGrid.ColumnHeaderStyle>
+                <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="Background" Value="#F1F5F9"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
+                    <Setter Property="Padding" Value="5"/>
+                    <Setter Property="BorderBrush" Value="#CBD5E1"/>
+                    <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                </Style>
+            </DataGrid.ColumnHeaderStyle>
+
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Código" Binding="{Binding Codigo}" Width="120"/>
+                <DataGridTextColumn Header="Descrição do Produto" Binding="{Binding Descricao}" Width="*"/>
+                <DataGridTextColumn Header="UN" Binding="{Binding Unidade}" Width="50"/>
+                <DataGridTextColumn Header="Preço Venda" Binding="{Binding PrecoVenda}" Width="120"/>
+                <DataGridTextColumn Header="Estoque" Binding="{Binding Estoque}" Width="100"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</Window>

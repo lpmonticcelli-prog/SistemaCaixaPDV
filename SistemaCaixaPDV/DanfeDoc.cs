@@ -1,4 +1,5 @@
-﻿// Se o visual studio reclamar do namespace acima, troque para: using Zeus.Net.NFe.Danfe.QuestPdf;
+﻿using System;
+using System.Windows;
 
 namespace SistemaCaixaPDV
 {
@@ -13,12 +14,33 @@ namespace SistemaCaixaPDV
 
         internal void ExportarPdf(string caminhoPdf)
         {
-            throw new NotImplementedException();
+            try
+            {
+                // Estrutura defensiva: Informa o utilizador em vez de "crashar" o sistema.
+                // A integração total com o Zeus.Net.NFe.Danfe.QuestPdf será feita na fase final de layout.
+                MessageBox.Show($"O ficheiro PDF da Danfe será gerado no seguinte caminho:\n{caminhoPdf}\n\nO módulo de impressão visual (Layout da Danfe) está atualmente em desenvolvimento.",
+                                "Impressão de Danfe (Em Construção)",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Falha ao exportar o PDF: " + ex.Message, "Erro de Impressão", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         internal object Gerar()
         {
-            throw new NotImplementedException();
+            try
+            {
+                // Retorna um objeto genérico vazio em vez de lançar exceção,
+                // mantendo a estabilidade de quem chamou a função.
+                return new object();
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

@@ -20,7 +20,7 @@
 
                 <Separator Margin="0,20,0,20" Background="#60A5FA"/>
 
-                <Button x:Name="btnImprimir" Content="🖨️ Imprimir Grid" Background="#10B981" Foreground="White" FontSize="16" FontWeight="Bold" Height="45" Margin="0,0,0,10" Click="btnImprimir_Click"/>
+                <Button x:Name="btnImprimir" Content="🖨️ Imprimir Grelha" Background="#10B981" Foreground="White" FontSize="16" FontWeight="Bold" Height="45" Margin="0,0,0,10" Click="btnImprimir_Click"/>
                 <Button x:Name="btnFechar" Content="🚪 Sair" Background="#EF4444" Foreground="White" FontSize="16" FontWeight="Bold" Height="45" Click="btnFechar_Click"/>
             </StackPanel>
         </Border>
@@ -63,9 +63,10 @@
                 </Border>
             </StackPanel>
 
-            <DataGrid x:Name="gridResultados" Grid.Row="1" AutoGenerateColumns="True" IsReadOnly="True" 
+            <DataGrid x:Name="gridResultados" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" 
                       Background="White" RowHeight="30" FontSize="14" AlternatingRowBackground="#F8FAFC"
-                      HorizontalGridLinesBrush="#E2E8F0" VerticalGridLinesBrush="#E2E8F0"/>
+                      HorizontalGridLinesBrush="#E2E8F0" VerticalGridLinesBrush="#E2E8F0">
+            </DataGrid>
 
             <Border x:Name="panelTotais" Grid.Row="2" Background="#FEF08A" CornerRadius="5" Padding="15" Margin="0,15,0,0" Visibility="Collapsed">
                 <Grid>

@@ -1,0 +1,10 @@
+Feat: Refatoracao arquitetural e conclusao dos modulos Produtos e Clientes
+
+Esta atualizacao consolida a estrutura de dados do PDV e finaliza o fluxo de informacoes entre as telas de Cadastro de Produtos e Cadastro de Clientes.
+
+- Criacao dinamica das tabelas ProdutoVariacoes e HistoricoValeCompras.
+- Coluna CreditoLiberado injetada via ALTER TABLE com blindagem retroativa.
+- Modulo de Clientes refatorado: delegacao SQL para BancoDeDados.cs.
+- API ViaCEP integrada via HttpClient para preenchimento de endereco.
+- Calculo de saldo disponivel (Credito) em tempo real.
+- Injecao das abas de historico (Contas a Receber, Vendas, Vale Compras) preenchidas dinamicamente.

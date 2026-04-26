@@ -15,4 +15,10 @@
     <PackageReference Include="Zeus.Net.NFe.NFCe" Version="2026.3.3.2126" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="commit.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+  </ItemGroup>
+
 </Project>

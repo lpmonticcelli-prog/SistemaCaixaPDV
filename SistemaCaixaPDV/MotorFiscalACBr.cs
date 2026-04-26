@@ -8,14 +8,18 @@ namespace SistemaCaixaPDV
 {
     public static class MotorFiscalACBr
     {
-        // Pasta onde o ACBrMonitor vai ficar "escutando" as ordens do nosso sistema
-        private static string pastaEntrada = @"C:\ACBrMonitorPLUS\ENT.TXT";
-        private static string pastaSaida = @"C:\ACBrMonitorPLUS\SAI.TXT";
+        // CORREÇÃO PONTO 2: Comunicação ACBr agora feita dentro da raiz do sistema para evitar bloqueio de permissão do Windows (UAC)
+        private static string pastaAcbr = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ACBr_Comm");
 
         public static void EnviarVendaParaACBr(List<ItemVenda> itens, decimal totalVenda, string formaPagamento, string cpfCliente = "")
         {
             try
             {
+                if (!Directory.Exists(pastaAcbr)) Directory.CreateDirectory(pastaAcbr);
+
+                string arquivoEntrada = Path.Combine(pastaAcbr, "ENT.TXT");
+                string arquivoSaida = Path.Combine(pastaAcbr, "SAI.TXT");
+
                 StringBuilder ini = new StringBuilder();
 
                 // COMANDO PARA O ACBR CRIAR A NOTA (NFC-e)
@@ -70,10 +74,10 @@ namespace SistemaCaixaPDV
                 ini.AppendLine(", 1, 1)"); // 1 = Imprimir Danfe Automático, 1 = Síncrono
 
                 // Apaga respostas antigas
-                if (File.Exists(pastaSaida)) File.Delete(pastaSaida);
+                if (File.Exists(arquivoSaida)) File.Delete(arquivoSaida);
 
                 // Grava o arquivo ENT.TXT para o ACBr ler
-                File.WriteAllText(pastaEntrada, ini.ToString(), Encoding.GetEncoding("Windows-1252"));
+                File.WriteAllText(arquivoEntrada, ini.ToString(), Encoding.GetEncoding("Windows-1252"));
 
                 // Aqui o sistema aguardaria a resposta do SAI.TXT para saber se aprovou.
             }

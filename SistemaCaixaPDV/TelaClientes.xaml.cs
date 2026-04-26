@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using Microsoft.Data.Sqlite;
+using Microsoft.Win32;
+using System.IO;
+using System.Windows.Media.Imaging;
 
 namespace SistemaCaixaPDV
 {
@@ -11,28 +15,20 @@ namespace SistemaCaixaPDV
     {
         private string connectionString = BancoDeDados.ConnectionString;
         private int idClienteAtual = 0;
+        private string caminhoFotoAtual = "";
 
         public TelaClientes()
         {
             InitializeComponent();
-
-            // =========================================================
-            // A MÁGICA: Agora o banco é forçado a criar logo no arranque!
-            // =========================================================
             ConfigurarBancoDeDados();
-
             txtDataCadastro.Text = DateTime.Now.ToString("dd/MM/yyyy");
             btnNovo_Click(null, null);
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // Já não precisamos disto aqui porque o construtor acima já resolveu tudo!
         }
 
-        // =====================================================================
-        // MOTOR NOVO: CRIA A TABELA "Clientes" COMPLETA E IMPECÁVEL
-        // =====================================================================
         private void ConfigurarBancoDeDados()
         {
             try
@@ -40,39 +36,22 @@ namespace SistemaCaixaPDV
                 using (var cx = new SqliteConnection(connectionString))
                 {
                     cx.Open();
-                    string sqlCria = @"CREATE TABLE IF NOT EXISTS Clientes (
-                                        Id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                                        Nome TEXT, 
-                                        CpfCnpj TEXT,
-                                        Numero TEXT,
-                                        Endereco TEXT,
-                                        Complemento TEXT,
-                                        Bairro TEXT,
-                                        Cidade TEXT,
-                                        Uf TEXT,
-                                        Cep TEXT,
-                                        DataCadastro TEXT,
-                                        Celular TEXT,
-                                        TelefoneFixo TEXT,
-                                        Tipo TEXT,
-                                        Rg TEXT,
-                                        Email TEXT,
-                                        Observacoes TEXT
-                                      )";
-                    using (var cmd = new SqliteCommand(sqlCria, cx))
-                    {
-                        cmd.ExecuteNonQuery();
-                    }
+                    string sqlCriaVale = @"CREATE TABLE IF NOT EXISTS HistoricoValeCompras (
+                                            Id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                                            ClienteId INTEGER, 
+                                            DataHora TEXT, 
+                                            Tipo TEXT, 
+                                            Valor NUMERIC, 
+                                            Motivo TEXT
+                                          )";
+                    using (var cmdVale = new SqliteCommand(sqlCriaVale, cx)) { cmdVale.ExecuteNonQuery(); }
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Erro ao criar a tabela nova: " + ex.Message, "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            catch { }
         }
 
         // ==========================================
-        // BOTÕES SUPERIORES
+        // BOTÕES SUPERIORES E AÇÕES
         // ==========================================
         private void btnNovo_Click(object sender, RoutedEventArgs e)
         {
@@ -99,11 +78,26 @@ namespace SistemaCaixaPDV
             if (txtMae != null) txtMae.Clear();
             if (txtObservacoes != null) txtObservacoes.Clear();
             if (txtDataCadastro != null) txtDataCadastro.Text = DateTime.Now.ToString("dd/MM/yyyy");
+
+            if (txtCreditoDisponivel != null) txtCreditoDisponivel.Text = "0,00";
+            if (txtCreditoUtilizado != null) txtCreditoUtilizado.Text = "0,00";
+
+            caminhoFotoAtual = "";
+            if (imgFotoCliente != null) imgFotoCliente.Source = null;
+            if (panelSemFoto != null) panelSemFoto.Visibility = Visibility.Visible;
+            if (gridHistoricoVendas != null) gridHistoricoVendas.ItemsSource = null;
+            if (gridContasReceber != null) gridContasReceber.ItemsSource = null;
+            if (gridHistoricoVale != null) gridHistoricoVale.ItemsSource = null;
+            if (txtSaldoVale != null) txtSaldoVale.Text = "R$ 0,00";
+            if (txtValorVale != null) txtValorVale.Clear();
+            if (txtMotivoVale != null) txtMotivoVale.Clear();
+
+            if (txtNome != null) txtNome.Focus();
         }
 
         private void btnAlterar_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Localize o cliente na lupa 🔍 primeiro para alterar!");
+            MessageBox.Show("Localize o cliente na lupa 🔍 primeiro para alterar!", "Aviso", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void btnGravar_Click(object sender, RoutedEventArgs e)
@@ -114,59 +108,37 @@ namespace SistemaCaixaPDV
                 return;
             }
 
-            // Armadura para a NF-e
             if (string.IsNullOrWhiteSpace(txtNumero.Text)) txtNumero.Text = "SN";
             if (string.IsNullOrWhiteSpace(cbUf.Text)) cbUf.Text = "SP";
 
-            try
+            decimal creditoParaLiberar = ConverterTextoParaDecimal(txtCreditoDisponivel.Text);
+
+            ClienteCompleto cliente = new ClienteCompleto
             {
-                using (var cx = new SqliteConnection(connectionString))
-                {
-                    cx.Open();
-                    SqliteCommand cmd;
+                Id = idClienteAtual,
+                Nome = txtNome.Text.Trim(),
+                CpfCnpj = txtCpfCnpj.Text.Trim(),
+                Celular = txtCelular.Text.Trim(),
+                TelefoneFixo = txtTelefoneFixo.Text.Trim(),
+                Tipo = cbTipo.Text,
+                Rg = txtRg.Text.Trim(),
+                Endereco = txtEndereco.Text.Trim(),
+                Numero = txtNumero.Text.Trim(),
+                Complemento = txtComplemento.Text.Trim(),
+                Bairro = txtBairro.Text.Trim(),
+                Cidade = txtCidade.Text.Trim(),
+                Uf = cbUf.Text,
+                Cep = txtCep.Text.Trim(),
+                Email = txtEmail.Text.Trim(),
+                Observacoes = txtObservacoes.Text.Trim(),
+                DataCadastro = txtDataCadastro.Text,
+                CreditoLiberado = creditoParaLiberar
+            };
 
-                    if (idClienteAtual == 0)
-                    {
-                        // GRAVANDO NA TABELA NOVA!
-                        string sql = @"INSERT INTO Clientes (Nome, CpfCnpj, Celular, TelefoneFixo, Tipo, Rg, Endereco, Numero, Complemento, Bairro, Cidade, Uf, Cep, Email, Observacoes, DataCadastro) 
-                                       VALUES (@nome, @cpf, @celular, @fixo, @tipo, @rg, @endereco, @numero, @complemento, @bairro, @cidade, @uf, @cep, @email, @obs, @data)";
-                        cmd = new SqliteCommand(sql, cx);
-                    }
-                    else
-                    {
-                        string sql = @"UPDATE Clientes SET Nome=@nome, CpfCnpj=@cpf, Celular=@celular, TelefoneFixo=@fixo, Tipo=@tipo, Rg=@rg, 
-                                       Endereco=@endereco, Numero=@numero, Complemento=@complemento, Bairro=@bairro, Cidade=@cidade, Uf=@uf, 
-                                       Cep=@cep, Email=@email, Observacoes=@obs WHERE Id=@id";
-                        cmd = new SqliteCommand(sql, cx);
-                        cmd.Parameters.AddWithValue("@id", idClienteAtual);
-                    }
+            BancoDeDados.SalvarCliente(cliente);
 
-                    cmd.Parameters.AddWithValue("@nome", txtNome.Text.Trim());
-                    cmd.Parameters.AddWithValue("@cpf", txtCpfCnpj.Text.Trim());
-                    cmd.Parameters.AddWithValue("@celular", txtCelular.Text.Trim());
-                    cmd.Parameters.AddWithValue("@fixo", txtTelefoneFixo.Text.Trim());
-                    cmd.Parameters.AddWithValue("@tipo", cbTipo.Text);
-                    cmd.Parameters.AddWithValue("@rg", txtRg.Text.Trim());
-                    cmd.Parameters.AddWithValue("@endereco", txtEndereco.Text.Trim());
-                    cmd.Parameters.AddWithValue("@numero", txtNumero.Text.Trim());
-                    cmd.Parameters.AddWithValue("@complemento", txtComplemento.Text.Trim());
-                    cmd.Parameters.AddWithValue("@bairro", txtBairro.Text.Trim());
-                    cmd.Parameters.AddWithValue("@cidade", txtCidade.Text.Trim());
-                    cmd.Parameters.AddWithValue("@uf", cbUf.Text);
-                    cmd.Parameters.AddWithValue("@cep", txtCep.Text.Trim());
-                    cmd.Parameters.AddWithValue("@email", txtEmail.Text.Trim());
-                    cmd.Parameters.AddWithValue("@obs", txtObservacoes.Text.Trim());
-                    cmd.Parameters.AddWithValue("@data", txtDataCadastro.Text);
-
-                    cmd.ExecuteNonQuery();
-                }
-                MessageBox.Show("Cliente gravado com sucesso!", "Sucesso", MessageBoxButton.OK, MessageBoxImage.Information);
-                btnNovo_Click(null, null);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Erro ao gravar: " + ex.Message, "Erro SQL", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            MessageBox.Show("Cliente gravado com sucesso!", "Sucesso", MessageBoxButton.OK, MessageBoxImage.Information);
+            btnNovo_Click(null, null);
         }
 
         private void btnLocalizar_Click(object sender, RoutedEventArgs e)
@@ -180,17 +152,10 @@ namespace SistemaCaixaPDV
         private void btnExcluir_Click(object sender, RoutedEventArgs e)
         {
             if (idClienteAtual == 0) { MessageBox.Show("Localize um cliente primeiro."); return; }
+
             if (MessageBox.Show("Excluir cliente?", "Atenção", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
             {
-                using (var cx = new SqliteConnection(connectionString))
-                {
-                    cx.Open();
-                    using (var cmd = new SqliteCommand("DELETE FROM Clientes WHERE Id = @id", cx))
-                    {
-                        cmd.Parameters.AddWithValue("@id", idClienteAtual);
-                        cmd.ExecuteNonQuery();
-                    }
-                }
+                BancoDeDados.ExcluirCliente(idClienteAtual);
                 btnNovo_Click(null, null);
             }
         }
@@ -198,7 +163,37 @@ namespace SistemaCaixaPDV
         private void btnFechar_Click(object sender, RoutedEventArgs e) { this.Close(); }
 
         // ==========================================
-        // EVENTOS EXTRAS
+        // FOTOGRAFIA DO CLIENTE
+        // ==========================================
+        private void btnFoto_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog dlg = new OpenFileDialog { Filter = "Imagens|*.bmp;*.jpg;*.png" };
+            if (dlg.ShowDialog() == true)
+            {
+                try
+                {
+                    string pastaSegura = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Imagens", "Clientes");
+                    if (!Directory.Exists(pastaSegura)) Directory.CreateDirectory(pastaSegura);
+
+                    string extensao = Path.GetExtension(dlg.FileName);
+                    string nomeArquivoSeguro = Guid.NewGuid().ToString() + extensao;
+                    string caminhoDestinoFinal = Path.Combine(pastaSegura, nomeArquivoSeguro);
+
+                    File.Copy(dlg.FileName, caminhoDestinoFinal, true);
+                    caminhoFotoAtual = caminhoDestinoFinal;
+
+                    imgFotoCliente.Source = new BitmapImage(new Uri(caminhoDestinoFinal));
+                    panelSemFoto.Visibility = Visibility.Collapsed;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Erro ao arquivar a foto: " + ex.Message, "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        // ==========================================
+        // MÁGICA DO VIA CEP
         // ==========================================
         private async void txtCep_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -232,52 +227,223 @@ namespace SistemaCaixaPDV
         }
 
         private void cbBloqueio_SelectionChanged(object sender, SelectionChangedEventArgs e) { }
-        private void AtualizarSaldo_TextChanged(object sender, TextChangedEventArgs e) { }
 
+        // ==========================================
+        // CÁLCULO DE CRÉDITO E SALDO
+        // ==========================================
+        private void AtualizarSaldo_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (!IsLoaded) return;
+            if (txtCreditoDisponivel == null || txtCreditoUtilizado == null || txtSaldoDisponivel == null) return;
+
+            decimal creditoLiberado = ConverterTextoParaDecimal(txtCreditoDisponivel.Text);
+            decimal creditoUtilizado = ConverterTextoParaDecimal(txtCreditoUtilizado.Text);
+
+            decimal saldo = creditoLiberado - creditoUtilizado;
+
+            txtSaldoDisponivel.Text = saldo.ToString("N2");
+            if (saldo < 0) txtSaldoDisponivel.Foreground = System.Windows.Media.Brushes.Red;
+            else txtSaldoDisponivel.Foreground = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#1E3A8A"));
+        }
+
+        private decimal ConverterTextoParaDecimal(string texto)
+        {
+            if (string.IsNullOrWhiteSpace(texto)) return 0;
+            texto = texto.Replace("R$", "").Trim();
+            if (decimal.TryParse(texto, out decimal valor)) return valor;
+            return 0;
+        }
+
+        // ==========================================
+        // CARREGAMENTO DE CLIENTE E ABAS HISTÓRICO
+        // ==========================================
         public void CarregarClienteNaTela(int id)
         {
+            var cliente = BancoDeDados.ObterClientePorId(id);
+            if (cliente != null)
+            {
+                idClienteAtual = cliente.Id;
+                txtCodigo.Text = cliente.Id.ToString();
+                txtNome.Text = cliente.Nome;
+                txtCpfCnpj.Text = cliente.CpfCnpj;
+                txtCelular.Text = cliente.Celular;
+                txtTelefoneFixo.Text = cliente.TelefoneFixo;
+                cbTipo.Text = cliente.Tipo;
+                txtRg.Text = cliente.Rg;
+                txtEndereco.Text = cliente.Endereco;
+                txtNumero.Text = cliente.Numero;
+                txtComplemento.Text = cliente.Complemento;
+                txtBairro.Text = cliente.Bairro;
+                txtCidade.Text = cliente.Cidade;
+                cbUf.Text = cliente.Uf;
+
+                txtCep.TextChanged -= txtCep_TextChanged;
+                txtCep.Text = cliente.Cep;
+                txtCep.TextChanged += txtCep_TextChanged;
+
+                txtEmail.Text = cliente.Email;
+                txtObservacoes.Text = cliente.Observacoes;
+                txtDataCadastro.Text = cliente.DataCadastro;
+
+                txtCreditoDisponivel.TextChanged -= AtualizarSaldo_TextChanged;
+                txtCreditoDisponivel.Text = cliente.CreditoLiberado.ToString("N2");
+                txtCreditoDisponivel.TextChanged += AtualizarSaldo_TextChanged;
+
+                CarregarHistoricoEContas(cliente.Id, cliente.Nome);
+                CarregarHistoricoValeCompras(cliente.Id);
+            }
+        }
+
+        private void CarregarHistoricoEContas(int idCliente, string nomeCliente)
+        {
+            try
+            {
+                decimal totalPendente = 0;
+                gridContasReceber.ItemsSource = BancoDeDados.FiltrarContasReceber(idCliente, "Todos", out totalPendente);
+                txtCreditoUtilizado.Text = totalPendente.ToString("N2");
+
+                var listaVendas = new List<RelatorioVendaModel>();
+                using (var cx = new SqliteConnection(connectionString))
+                {
+                    cx.Open();
+                    string sql = "SELECT Id, DataHora, FormaPagamento, TotalLiquido FROM Vendas WHERE ClienteId = @id OR ClienteNome = @nome ORDER BY Id DESC";
+                    using (var cmd = new SqliteCommand(sql, cx))
+                    {
+                        cmd.Parameters.AddWithValue("@id", idCliente);
+                        cmd.Parameters.AddWithValue("@nome", nomeCliente);
+                        using (var r = cmd.ExecuteReader())
+                        {
+                            while (r.Read())
+                            {
+                                string dataFormatada = r["DataHora"].ToString();
+                                if (DateTime.TryParse(dataFormatada, out DateTime dt)) dataFormatada = dt.ToString("dd/MM/yyyy HH:mm");
+
+                                listaVendas.Add(new RelatorioVendaModel
+                                {
+                                    NumVenda = r["Id"].ToString().PadLeft(4, '0'),
+                                    DataVenda = dataFormatada,
+                                    FormaPagto = r["FormaPagamento"].ToString(),
+                                    ValorTotal = Convert.ToDecimal(r["TotalLiquido"]).ToString("C")
+                                });
+                            }
+                        }
+                    }
+                }
+                gridHistoricoVendas.ItemsSource = listaVendas;
+            }
+            catch { }
+        }
+
+        // ==========================================
+        // GESTÃO DA ABA VALE COMPRAS E TROCAS
+        // ==========================================
+        private void CarregarHistoricoValeCompras(int idCliente)
+        {
+            var lista = new List<ValeCompraModel>();
+            decimal saldoFinal = 0;
+
             try
             {
                 using (var cx = new SqliteConnection(connectionString))
                 {
                     cx.Open();
-                    // BUSCANDO DA TABELA NOVA!
-                    using (var cmd = new SqliteCommand("SELECT * FROM Clientes WHERE Id = @id", cx))
+                    string sql = "SELECT * FROM HistoricoValeCompras WHERE ClienteId = @id ORDER BY Id DESC";
+                    using (var cmd = new SqliteCommand(sql, cx))
                     {
-                        cmd.Parameters.AddWithValue("@id", id);
+                        cmd.Parameters.AddWithValue("@id", idCliente);
                         using (var r = cmd.ExecuteReader())
                         {
-                            if (r.Read())
+                            while (r.Read())
                             {
-                                idClienteAtual = Convert.ToInt32(r["Id"]);
-                                txtCodigo.Text = idClienteAtual.ToString();
-                                txtNome.Text = r["Nome"].ToString();
-                                txtCpfCnpj.Text = r["CpfCnpj"].ToString();
-                                txtCelular.Text = r["Celular"].ToString();
-                                txtTelefoneFixo.Text = r["TelefoneFixo"].ToString();
-                                cbTipo.Text = r["Tipo"].ToString();
-                                txtRg.Text = r["Rg"].ToString();
-                                txtEndereco.Text = r["Endereco"].ToString();
-                                txtNumero.Text = r["Numero"].ToString();
-                                txtComplemento.Text = r["Complemento"].ToString();
-                                txtBairro.Text = r["Bairro"].ToString();
-                                txtCidade.Text = r["Cidade"].ToString();
-                                cbUf.Text = r["Uf"].ToString();
+                                string tipo = r["Tipo"].ToString();
+                                decimal valor = Convert.ToDecimal(r["Valor"]);
 
-                                txtCep.TextChanged -= txtCep_TextChanged;
-                                txtCep.Text = r["Cep"].ToString();
-                                txtCep.TextChanged += txtCep_TextChanged;
+                                if (tipo == "Entrada") saldoFinal += valor;
+                                else saldoFinal -= valor;
 
-                                txtEmail.Text = r["Email"].ToString();
-                                txtObservacoes.Text = r["Observacoes"].ToString();
-                                txtDataCadastro.Text = r["DataCadastro"].ToString();
+                                string dataFormatada = r["DataHora"].ToString();
+                                if (DateTime.TryParse(dataFormatada, out DateTime dt)) dataFormatada = dt.ToString("dd/MM/yyyy HH:mm");
+
+                                lista.Add(new ValeCompraModel
+                                {
+                                    DataFormatada = dataFormatada,
+                                    Tipo = tipo == "Entrada" ? "🟢 Crédito" : "🔴 Saída",
+                                    ValorFormatado = valor.ToString("C"),
+                                    Motivo = r["Motivo"].ToString()
+                                });
                             }
                         }
                     }
                 }
             }
             catch { }
+
+            gridHistoricoVale.ItemsSource = lista;
+            txtSaldoVale.Text = saldoFinal.ToString("C");
+            if (saldoFinal < 0) txtSaldoVale.Foreground = System.Windows.Media.Brushes.Red;
+            else txtSaldoVale.Foreground = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#15803D"));
+        }
+
+        private void btnGerarCredito_Click(object sender, RoutedEventArgs e) { RegistrarVale("Entrada"); }
+        private void btnBaixarCredito_Click(object sender, RoutedEventArgs e) { RegistrarVale("Saída"); }
+
+        private void RegistrarVale(string tipoMovimento)
+        {
+            if (idClienteAtual == 0)
+            {
+                MessageBox.Show("Você precisa localizar e selecionar um cliente primeiro!", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            decimal valor = ConverterTextoParaDecimal(txtValorVale.Text);
+            if (valor <= 0)
+            {
+                MessageBox.Show("Digite um valor válido maior que zero.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(txtMotivoVale.Text))
+            {
+                MessageBox.Show("Por favor, preencha o Motivo da movimentação (ex: Devolução de blusa).", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+                txtMotivoVale.Focus();
+                return;
+            }
+
+            try
+            {
+                using (var cx = new SqliteConnection(connectionString))
+                {
+                    cx.Open();
+                    string sql = "INSERT INTO HistoricoValeCompras (ClienteId, DataHora, Tipo, Valor, Motivo) VALUES (@cid, @data, @tipo, @v, @m)";
+                    using (var cmd = new SqliteCommand(sql, cx))
+                    {
+                        cmd.Parameters.AddWithValue("@cid", idClienteAtual);
+                        cmd.Parameters.AddWithValue("@data", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+                        cmd.Parameters.AddWithValue("@tipo", tipoMovimento);
+                        cmd.Parameters.AddWithValue("@v", valor);
+                        cmd.Parameters.AddWithValue("@m", txtMotivoVale.Text.Trim());
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+
+                MessageBox.Show($"Vale Compras ({tipoMovimento}) registrado com sucesso!", "Sucesso", MessageBoxButton.OK, MessageBoxImage.Information);
+                txtValorVale.Clear();
+                txtMotivoVale.Clear();
+                CarregarHistoricoValeCompras(idClienteAtual);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Erro ao salvar Vale Compras: " + ex.Message, "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
-}
 
+    // Modelo de Dados Exclusivo para o Grid do Vale Compras
+    public class ValeCompraModel
+    {
+        public string DataFormatada { get; set; }
+        public string Tipo { get; set; }
+        public string ValorFormatado { get; set; }
+        public string Motivo { get; set; }
+    }
+}

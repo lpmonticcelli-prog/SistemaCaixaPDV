@@ -2,14 +2,12 @@
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
-using Microsoft.Data.Sqlite;
+using System.Windows.Data; // Permite o mapeamento dinâmico de colunas
 
-namespace SistemaCaixaPDV // <-- Verifique se o nome do projeto está correto!
+namespace SistemaCaixaPDV
 {
     public partial class TelaRelatorios : Window
     {
-        private string connectionString = BancoDeDados.ConnectionString;
-
         public TelaRelatorios()
         {
             InitializeComponent();
@@ -17,7 +15,6 @@ namespace SistemaCaixaPDV // <-- Verifique se o nome do projeto está correto!
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // Começa com a lista de clientes por padrão
             GerarRelatorioClientes();
         }
 
@@ -40,7 +37,6 @@ namespace SistemaCaixaPDV // <-- Verifique se o nome do projeto está correto!
             panelFiltrosVendas.Visibility = Visibility.Visible;
             panelTotais.Visibility = Visibility.Visible;
 
-            // Já dispara a busca de "Hoje" que é o padrão
             BuscarVendas();
         }
 
@@ -51,7 +47,7 @@ namespace SistemaCaixaPDV // <-- Verifique se o nome do projeto está correto!
 
         private void btnImprimir_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Função de exportar/imprimir grid será adicionada em breve!", "Aviso", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show("A funcionalidade de exportação e impressão de grelhas em ficheiros (PDF/Excel) será acoplada na próxima fase.", "Exportação", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         // ==========================================
@@ -59,16 +55,15 @@ namespace SistemaCaixaPDV // <-- Verifique se o nome do projeto está correto!
         // ==========================================
         private void cbPeriodo_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (panelCalendario == null) return; // Evita erro no carregamento da tela
+            if (panelCalendario == null) return;
 
             var selecionado = (ComboBoxItem)cbPeriodo.SelectedItem;
             string opcao = selecionado.Content.ToString();
 
-            // Só mostra os DatePickers (Calendários) se escolher "Personalizado"
             if (opcao.Contains("Personalizado"))
             {
                 panelCalendario.Visibility = Visibility.Visible;
-                dpInicio.SelectedDate = DateTime.Today.AddDays(-30); // Padrão 30 dias atrás
+                dpInicio.SelectedDate = DateTime.Today.AddDays(-30);
                 dpFim.SelectedDate = DateTime.Today;
             }
             else
@@ -83,7 +78,40 @@ namespace SistemaCaixaPDV // <-- Verifique se o nome do projeto está correto!
         }
 
         // ==========================================
-        // FUNÇÕES QUE PUXAM OS DADOS DO BANCO
+        // MOTOR DE GERAÇÃO DINÂMICA DE COLUNAS
+        // ==========================================
+        private void ConfigurarColunasClientes()
+        {
+            gridResultados.Columns.Clear();
+            gridResultados.Columns.Add(new DataGridTextColumn { Header = "Código", Binding = new Binding("Codigo"), Width = 70 });
+            gridResultados.Columns.Add(new DataGridTextColumn { Header = "Nome do Cliente", Binding = new Binding("Nome"), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
+            gridResultados.Columns.Add(new DataGridTextColumn { Header = "CPF/CNPJ", Binding = new Binding("CPF"), Width = 140 });
+            gridResultados.Columns.Add(new DataGridTextColumn { Header = "Celular", Binding = new Binding("Celular"), Width = 130 });
+            gridResultados.Columns.Add(new DataGridTextColumn { Header = "Cidade", Binding = new Binding("Cidade"), Width = 150 });
+            gridResultados.Columns.Add(new DataGridTextColumn { Header = "UF", Binding = new Binding("UF"), Width = 50 });
+        }
+
+        private void ConfigurarColunasProdutos()
+        {
+            gridResultados.Columns.Clear();
+            gridResultados.Columns.Add(new DataGridTextColumn { Header = "Cód / Barras", Binding = new Binding("Codigo"), Width = 120 });
+            gridResultados.Columns.Add(new DataGridTextColumn { Header = "Descrição do Produto", Binding = new Binding("Descricao"), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
+            gridResultados.Columns.Add(new DataGridTextColumn { Header = "Unidade", Binding = new Binding("Unidade"), Width = 70 });
+            gridResultados.Columns.Add(new DataGridTextColumn { Header = "Preço Venda", Binding = new Binding("PrecoVenda"), Width = 130 });
+            gridResultados.Columns.Add(new DataGridTextColumn { Header = "Estoque", Binding = new Binding("Estoque"), Width = 100 });
+        }
+
+        private void ConfigurarColunasVendas()
+        {
+            gridResultados.Columns.Clear();
+            gridResultados.Columns.Add(new DataGridTextColumn { Header = "Nº Venda", Binding = new Binding("NumVenda"), Width = 100 });
+            gridResultados.Columns.Add(new DataGridTextColumn { Header = "Data e Hora", Binding = new Binding("DataVenda"), Width = 160 });
+            gridResultados.Columns.Add(new DataGridTextColumn { Header = "Forma de Pagto", Binding = new Binding("FormaPagto"), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
+            gridResultados.Columns.Add(new DataGridTextColumn { Header = "Valor Total", Binding = new Binding("ValorTotal"), Width = 140 });
+        }
+
+        // ==========================================
+        // CARREGAMENTO DOS DADOS NO DATA GRID
         // ==========================================
         private void GerarRelatorioClientes()
         {
@@ -91,29 +119,8 @@ namespace SistemaCaixaPDV // <-- Verifique se o nome do projeto está correto!
             panelFiltrosVendas.Visibility = Visibility.Collapsed;
             panelTotais.Visibility = Visibility.Collapsed;
 
-            var lista = new List<RelatorioClienteModel>();
-
-            using (var cx = new SqliteConnection(connectionString))
-            {
-                cx.Open();
-                using (var cmd = new SqliteCommand("SELECT Id, Nome, Cpf, Telefone, Cidade, Uf FROM Clientes ORDER BY Nome", cx))
-                using (var r = cmd.ExecuteReader())
-                {
-                    while (r.Read())
-                    {
-                        lista.Add(new RelatorioClienteModel
-                        {
-                            Codigo = r.GetInt32(0).ToString("D3"),
-                            Nome = r.GetString(1),
-                            CPF = r.IsDBNull(2) ? "" : r.GetString(2),
-                            Celular = r.IsDBNull(3) ? "" : r.GetString(3),
-                            Cidade = r.IsDBNull(4) ? "" : r.GetString(4),
-                            UF = r.IsDBNull(5) ? "" : r.GetString(5)
-                        });
-                    }
-                }
-            }
-            gridResultados.ItemsSource = lista;
+            ConfigurarColunasClientes();
+            gridResultados.ItemsSource = BancoDeDados.ObterRelatorioClientes();
         }
 
         private void GerarRelatorioProdutos()
@@ -122,28 +129,8 @@ namespace SistemaCaixaPDV // <-- Verifique se o nome do projeto está correto!
             panelFiltrosVendas.Visibility = Visibility.Collapsed;
             panelTotais.Visibility = Visibility.Collapsed;
 
-            var lista = new List<RelatorioProdutoModel>();
-
-            using (var cx = new SqliteConnection(connectionString))
-            {
-                cx.Open();
-                using (var cmd = new SqliteCommand("SELECT Codigo, Descricao, Unidade, Preco, EstoqueAtual FROM Produtos ORDER BY Descricao", cx))
-                using (var r = cmd.ExecuteReader())
-                {
-                    while (r.Read())
-                    {
-                        lista.Add(new RelatorioProdutoModel
-                        {
-                            Codigo = r.GetString(0),
-                            Descricao = r.GetString(1),
-                            Unidade = r.IsDBNull(2) ? "UN" : r.GetString(2),
-                            PrecoVenda = r.GetDecimal(3).ToString("C"),
-                            Estoque = r.IsDBNull(4) ? "0" : r.GetDecimal(4).ToString("N2")
-                        });
-                    }
-                }
-            }
-            gridResultados.ItemsSource = lista;
+            ConfigurarColunasProdutos();
+            gridResultados.ItemsSource = BancoDeDados.ObterRelatorioProdutos();
         }
 
         private void BuscarVendas()
@@ -153,7 +140,6 @@ namespace SistemaCaixaPDV // <-- Verifique se o nome do projeto está correto!
             var selecionado = (ComboBoxItem)cbPeriodo.SelectedItem;
             string opcao = selecionado.Content.ToString();
 
-            // Mágica das datas! (O banco salva em yyyy-MM-dd HH:mm:ss)
             DateTime hoje = DateTime.Today;
 
             if (opcao == "Hoje")
@@ -187,44 +173,9 @@ namespace SistemaCaixaPDV // <-- Verifique se o nome do projeto está correto!
                 dataFim = dpFim.SelectedDate.Value.ToString("yyyy-MM-dd 23:59:59");
             }
 
-            // Agora busca no banco
-            var lista = new List<RelatorioVendaModel>();
-            decimal somaTotal = 0;
-
-            using (var cx = new SqliteConnection(connectionString))
-            {
-                cx.Open();
-                string sql = "SELECT Id, DataHora, FormaPagamento, TotalLiquido FROM Vendas WHERE DataHora >= @inicio AND DataHora <= @fim ORDER BY DataHora DESC";
-
-                using (var cmd = new SqliteCommand(sql, cx))
-                {
-                    cmd.Parameters.AddWithValue("@inicio", dataInicio);
-                    cmd.Parameters.AddWithValue("@fim", dataFim);
-
-                    using (var r = cmd.ExecuteReader())
-                    {
-                        while (r.Read())
-                        {
-                            decimal valor = r.GetDecimal(3);
-                            somaTotal += valor;
-
-                            // Tenta converter a data para exibir mais bonitinho na tela
-                            string dataBonita = r.GetString(1);
-                            if (DateTime.TryParse(dataBonita, out DateTime dtParsed)) dataBonita = dtParsed.ToString("dd/MM/yyyy HH:mm");
-
-                            lista.Add(new RelatorioVendaModel
-                            {
-                                NumVenda = r.GetInt32(0).ToString("D4"),
-                                DataVenda = dataBonita,
-                                FormaPagto = r.GetString(2),
-                                ValorTotal = valor.ToString("C")
-                            });
-                        }
-                    }
-                }
-            }
-
-            gridResultados.ItemsSource = lista;
+            ConfigurarColunasVendas();
+            decimal somaTotal;
+            gridResultados.ItemsSource = BancoDeDados.ObterRelatorioVendas(dataInicio, dataFim, out somaTotal);
             txtTotalRelatorio.Text = somaTotal.ToString("C");
         }
     }

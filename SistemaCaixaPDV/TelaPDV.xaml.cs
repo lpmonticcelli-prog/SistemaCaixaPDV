@@ -4,17 +4,11 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Microsoft.Data.Sqlite;
 
 namespace SistemaCaixaPDV
 {
     public partial class TelaPDV : Window
     {
-        // =========================================================================
-        // 🚨 CONEXÃO GLOBAL: Aponta direto para o seu banco original e infalível!
-        // =========================================================================
-        private readonly string conexaoBD = BancoDeDados.ConnectionString;
-
         // Lista que vai alimentar o DataGrid do carrinho
         public ObservableCollection<ItemCarrinho> carrinhoDeProdutos { get; set; } = new ObservableCollection<ItemCarrinho>();
 
@@ -34,43 +28,16 @@ namespace SistemaCaixaPDV
         }
 
         // ===============================================================
-        // BUSCAR CLIENTES NO BANCO DE DADOS
+        // BUSCAR CLIENTES NO BANCO DE DADOS (BLINDADO)
         // ===============================================================
         private void CarregarClientes()
         {
-            try
+            var clientes = BancoDeDados.ListarClientes();
+            cbCliente.ItemsSource = clientes;
+
+            if (clientes.Count == 0)
             {
-                var listaClientes = new System.Collections.Generic.List<ClienteVenda>();
-
-                using (var cx = new SqliteConnection(conexaoBD))
-                {
-                    cx.Open();
-                    // Agora usando a tabela 'Clientes' padronizada no seu BD
-                    var cmd = new SqliteCommand("SELECT Id, Nome FROM Clientes ORDER BY Nome", cx);
-
-                    using (var r = cmd.ExecuteReader())
-                    {
-                        while (r.Read())
-                        {
-                            listaClientes.Add(new ClienteVenda
-                            {
-                                Id = Convert.ToInt32(r["Id"]),
-                                Nome = r["Nome"].ToString()
-                            });
-                        }
-                    }
-                }
-
-                cbCliente.ItemsSource = listaClientes;
-
-                if (listaClientes.Count == 0)
-                {
-                    MessageBox.Show("A busca funcionou, mas a tabela 'Clientes' está VAZIA!\nVerifique se cadastrou o cliente no lugar certo.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Erro ao carregar a lista de clientes: \n" + ex.Message, "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("A busca funcionou, mas a tabela 'Clientes' está VAZIA!\nVerifique se cadastrou o cliente no lugar certo.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
@@ -85,27 +52,15 @@ namespace SistemaCaixaPDV
             {
                 int idCliente = Convert.ToInt32(cbCliente.SelectedValue);
 
-                try
-                {
-                    using (var cx = new SqliteConnection(conexaoBD))
-                    {
-                        cx.Open();
-                        // Busca todos os dados do cliente selecionado
-                        var cmd = new SqliteCommand("SELECT * FROM Clientes WHERE Id = @id", cx);
-                        cmd.Parameters.AddWithValue("@id", idCliente);
+                // Utiliza o método blindado centralizado
+                var cliente = BancoDeDados.ObterClientePorId(idCliente);
 
-                        using (var r = cmd.ExecuteReader())
-                        {
-                            if (r.Read())
-                            {
-                                // Quando precisar puxar o Limite de Crédito ou Débito, a lógica entra aqui
-                                // Exemplo: txtLimiteCredito.Text = "Limite: R$ " + r["CreditoDisponivel"].ToString();
-                                chkGerarCarne.IsEnabled = true;
-                            }
-                        }
-                    }
+                if (cliente != null)
+                {
+                    // Quando precisar puxar o Limite de Crédito ou Débito, a lógica entra aqui
+                    // Exemplo: txtLimiteCredito.Text = "Limite: R$ " + cliente.CreditoDisponivel;
+                    chkGerarCarne.IsEnabled = true;
                 }
-                catch { }
             }
             else
             {
@@ -141,8 +96,21 @@ namespace SistemaCaixaPDV
                 string codigoDigitado = txtCodigoBarra.Text.Trim();
                 if (string.IsNullOrEmpty(codigoDigitado)) return;
 
-                // Aqui futuramente colocaremos o SELECT na tabela Produtos
-                MessageBox.Show("Você digitou o código: " + codigoDigitado + "\nAqui o sistema vai no SQLite buscar o produto!", "Leitor / Busca");
+                // Consulta centralizada blindada
+                var produto = BancoDeDados.BuscarProduto(codigoDigitado);
+
+                if (produto != null)
+                {
+                    txtNomeProduto.Text = produto.Descricao;
+                    txtPrecoUnitario.Text = produto.Preco.ToString("N2");
+
+                    // TODO: Lógica para inserir o produto no carrinho
+                    MessageBox.Show($"Produto {produto.Descricao} lido com sucesso!", "Leitor / Busca");
+                }
+                else
+                {
+                    MessageBox.Show("Produto não encontrado no sistema!", "Não Encontrado", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
 
                 txtCodigoBarra.Clear();
                 txtQtd.Text = "1,00";
@@ -244,11 +212,5 @@ namespace SistemaCaixaPDV
         private void btnLocalizarVenda_Click(object sender, RoutedEventArgs e) { MessageBox.Show("Tela de Pesquisa..."); }
         private void btnImprimirNota_Click(object sender, RoutedEventArgs e) { MessageBox.Show("Imprimindo A4 / NF-e..."); }
         private void btnImprimir80mm_Click(object sender, RoutedEventArgs e) { MessageBox.Show("Imprimindo Recibo 80mm..."); }
-    }
-
-    internal class ClienteVenda
-    {
-        public int Id { get; set; }
-        public string Nome { get; set; }
     }
 }

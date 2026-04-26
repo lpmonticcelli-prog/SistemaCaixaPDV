@@ -1,7 +1,7 @@
 ﻿<Window x:Class="SistemaCaixaPDV.TelaPrincipal"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Menu Principal - PDV Itapira" Height="768" Width="1024"
+        Title="Menu Principal - VIWE SYS" Height="768" Width="1024"
         WindowStartupLocation="CenterScreen" WindowState="Maximized" Background="#F4F7FC"
         Loaded="Window_Loaded">
 

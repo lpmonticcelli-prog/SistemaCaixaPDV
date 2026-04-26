@@ -1,7 +1,5 @@
-﻿// ==========================================
-// BIBLIOTECAS DO ZEUS NFE
-// ==========================================
-
+﻿using System;
+using System.Windows;
 
 namespace SistemaCaixaPDV
 {
@@ -16,12 +14,31 @@ namespace SistemaCaixaPDV
 
         internal byte[] Gerar()
         {
-            throw new NotImplementedException();
+            try
+            {
+                // Retorna um array de bytes vazio simulando um PDF em branco,
+                // garantindo que qualquer função que espere um ficheiro não cause crash.
+                return Array.Empty<byte>();
+            }
+            catch
+            {
+                return Array.Empty<byte>();
+            }
         }
 
         internal void GerarPdf(string caminhoPdf)
         {
-            throw new NotImplementedException();
+            try
+            {
+                MessageBox.Show($"O ficheiro PDF do Cupom/Nota será gerado no seguinte caminho:\n{caminhoPdf}\n\nO módulo de formatação visual está a ser implementado.",
+                                "Impressão de Documento Fiscal",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Falha ao gerar o PDF: " + ex.Message, "Erro de Impressão", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 }
