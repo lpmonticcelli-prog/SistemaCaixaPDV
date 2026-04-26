@@ -1,0 +1,261 @@
+﻿<Window x:Class="SistemaCaixaPDV.TelaConfiguracoes"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Configurações do Sistema" Height="750" Width="850"
+        WindowStartupLocation="CenterScreen" Background="#F3F4F6">
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="⚙️ PAINEL DE CONFIGURAÇÕES GERAIS" FontSize="22" FontWeight="Bold" Foreground="#1E3A8A" Margin="0,0,0,15"/>
+
+        <TabControl Grid.Row="1" Background="White" BorderBrush="LightGray" Padding="10">
+
+            <TabItem Header="🏢 Dados da Empresa" FontSize="14" FontWeight="Bold">
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="250"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Margin="0,0,20,0">
+                        <TextBlock Text="Nome da Empresa / Razão Social:" Foreground="Gray" FontWeight="SemiBold"/>
+                        <TextBox x:Name="txtNomeLoja" Height="30" FontSize="14" Margin="0,5,0,15"/>
+
+                        <Grid Margin="0,0,0,15">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                <TextBlock Text="CNPJ:" Foreground="Gray" FontWeight="SemiBold"/>
+                                <TextBox x:Name="txtCnpj" Height="30" FontSize="14" Margin="0,5,0,0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Margin="0,0,10,0">
+                                <TextBlock Text="Insc. Estadual:" Foreground="Gray" FontWeight="SemiBold"/>
+                                <TextBox x:Name="txtIe" Height="30" FontSize="14" Margin="0,5,0,0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Telefone:" Foreground="Gray" FontWeight="SemiBold"/>
+                                <TextBox x:Name="txtTelefone" Height="30" FontSize="14" Margin="0,5,0,0"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Border BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="5" Padding="10" Margin="0,0,0,15" Background="#F9FAFB">
+                            <StackPanel>
+                                <TextBlock Text="📍 Endereço Fiscal (Obrigatório para SEFAZ)" Foreground="#4B5563" FontWeight="Bold" Margin="0,0,0,10"/>
+
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="2.5*"/>
+                                        <ColumnDefinition Width="1*"/>
+                                        <ColumnDefinition Width="1.5*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                        <TextBlock Text="Rua/Logradouro:" Foreground="Gray" FontSize="11"/>
+                                        <TextBox x:Name="txtRua" Height="25" FontSize="13"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Margin="0,0,10,0">
+                                        <TextBlock Text="Número:" Foreground="Gray" FontSize="11"/>
+                                        <TextBox x:Name="txtNumero" Height="25" FontSize="13"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Bairro:" Foreground="Gray" FontSize="11"/>
+                                        <TextBox x:Name="txtBairro" Height="25" FontSize="13"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="1.2*"/>
+                                        <ColumnDefinition Width="2*"/>
+                                        <ColumnDefinition Width="1*"/>
+                                        <ColumnDefinition Width="1.3*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                        <TextBlock Text="CEP (Busca Auto):" Foreground="Blue" FontWeight="Bold" FontSize="11"/>
+                                        <TextBox x:Name="txtCep" Height="25" FontSize="13" MaxLength="9" LostFocus="txtCep_LostFocus" KeyDown="txtCep_KeyDown" ToolTip="Digite o CEP e aperte Enter"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Margin="0,0,10,0">
+                                        <TextBlock Text="Cidade:" Foreground="Gray" FontSize="11"/>
+                                        <TextBox x:Name="txtCidade" Height="25" FontSize="13"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2" Margin="0,0,10,0">
+                                        <TextBlock Text="UF (Estado):" Foreground="Gray" FontSize="11"/>
+                                        <ComboBox x:Name="cbUf" Height="25" FontSize="13">
+                                            <ComboBoxItem Content="AC"/>
+                                            <ComboBoxItem Content="AL"/>
+                                            <ComboBoxItem Content="AP"/>
+                                            <ComboBoxItem Content="AM"/>
+                                            <ComboBoxItem Content="BA"/>
+                                            <ComboBoxItem Content="CE"/>
+                                            <ComboBoxItem Content="DF"/>
+                                            <ComboBoxItem Content="ES"/>
+                                            <ComboBoxItem Content="GO"/>
+                                            <ComboBoxItem Content="MA"/>
+                                            <ComboBoxItem Content="MT"/>
+                                            <ComboBoxItem Content="MS"/>
+                                            <ComboBoxItem Content="MG"/>
+                                            <ComboBoxItem Content="PA"/>
+                                            <ComboBoxItem Content="PB"/>
+                                            <ComboBoxItem Content="PR"/>
+                                            <ComboBoxItem Content="PE"/>
+                                            <ComboBoxItem Content="PI"/>
+                                            <ComboBoxItem Content="RJ"/>
+                                            <ComboBoxItem Content="RN"/>
+                                            <ComboBoxItem Content="RS"/>
+                                            <ComboBoxItem Content="RO"/>
+                                            <ComboBoxItem Content="RR"/>
+                                            <ComboBoxItem Content="SC"/>
+                                            <ComboBoxItem Content="SP" IsSelected="True"/>
+                                            <ComboBoxItem Content="SE"/>
+                                            <ComboBoxItem Content="TO"/>
+                                        </ComboBox>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="3">
+                                        <TextBlock Text="Cód. IBGE Cidade:" Foreground="Gray" FontSize="11"/>
+                                        <TextBox x:Name="txtCodigoIbge" Height="25" FontSize="13"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Text="Papel de Parede da Tela Inicial:" Foreground="Gray" FontWeight="SemiBold"/>
+                        <Grid Margin="0,5,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="txtCaminhoFundo" Grid.Column="0" Height="30" IsReadOnly="True" Background="#E5E7EB"/>
+                            <Button Grid.Column="1" Content="Procurar..." Width="80" Margin="5,0,0,0" Click="btnFundo_Click"/>
+                            <Button Grid.Column="2" Content="Remover" Width="70" Margin="5,0,0,0" Foreground="Red" Click="btnRemoverFundo_Click"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                        <TextBlock Text="Logotipo da Empresa" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,5"/>
+                        <Border BorderBrush="LightGray" BorderThickness="1" Width="200" Height="120" Background="#F9FAFB" Margin="0,0,0,5">
+                            <Image x:Name="imgLogo" Stretch="Uniform"/>
+                        </Border>
+                        <Button Content="Selecionar Logo" Height="30" Width="200" Click="btnLogo_Click" Margin="0,0,0,15"/>
+
+                        <TextBlock Text="Banner do PDV Rápido" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,5"/>
+                        <Border BorderBrush="LightGray" BorderThickness="1" Width="200" Height="100" Background="#F9FAFB" Margin="0,0,0,5">
+                            <Image x:Name="imgBannerPDV" Stretch="UniformToFill"/>
+                        </Border>
+                        <Grid Width="200">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Column="0" Content="Selecionar" Height="30" Margin="0,0,2,0" Click="btnBanner_Click"/>
+                            <Button Grid.Column="1" Content="Remover" Height="30" Foreground="Red" Margin="2,0,0,0" Click="btnRemoverBanner_Click"/>
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="🖨️ PDV e Fiscal" FontSize="14" FontWeight="Bold">
+                <StackPanel Margin="10">
+                    <Border Background="#F0FDF4" BorderBrush="#86EFAC" BorderThickness="1" CornerRadius="5" Padding="10" Margin="0,0,0,10">
+                        <StackPanel>
+                            <TextBlock Text="📄 Certificado Digital A1 (NFC-e / SAT)" FontWeight="Bold" Foreground="#166534" Margin="0,0,0,5"/>
+                            <Grid Margin="0,0,0,5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="txtCaminhoCertificado" Grid.Column="0" Height="25" IsReadOnly="True" Background="#E5E7EB"/>
+                                <Button Grid.Column="1" Content="Procurar..." Width="80" Margin="5,0,0,0" Click="btnCertificado_Click"/>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Margin="0,0,15,0">
+                                    <TextBlock Text="Senha do Certificado:" Foreground="Gray" FontSize="11"/>
+                                    <PasswordBox x:Name="txtSenhaCertificado" Width="150" Height="25" Background="White"/>
+                                </StackPanel>
+                                <Button Grid.Column="1" Content="Testar Certificado" Height="25" Width="140" Background="#3B82F6" Foreground="White" FontWeight="Bold" Cursor="Hand" VerticalAlignment="Bottom" Click="btnTestarCertificado_Click"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="#FEF9C3" BorderBrush="#FDE047" BorderThickness="1" CornerRadius="5" Padding="10" Margin="0,0,0,15">
+                        <StackPanel>
+                            <TextBlock Text="🔑 Chaves da SEFAZ (Obrigatório para o QR Code da NFC-e)" FontWeight="Bold" Foreground="#854D0E" Margin="0,0,0,10"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                    <TextBlock Text="ID CSC:" Foreground="#A16207" FontWeight="SemiBold"/>
+                                    <TextBox x:Name="txtIdCsc" Height="25" Text="001" TextAlignment="Center"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="Código CSC (Token gerado no portal da SEFAZ):" Foreground="#A16207" FontWeight="SemiBold"/>
+                                    <TextBox x:Name="txtCscSefaz" Height="25"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                            <TextBlock Text="Formato da Impressora:" Foreground="Gray" FontWeight="SemiBold"/>
+                            <ComboBox x:Name="cbTipoImpressora" Height="25" Margin="0,5,0,15">
+                                <ComboBoxItem Content="80mm"/>
+                                <ComboBoxItem Content="58mm"/>
+                                <ComboBoxItem Content="A4"/>
+                            </ComboBox>
+
+                            <Border Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1" CornerRadius="5" Padding="10">
+                                <StackPanel>
+                                    <TextBlock Text="🔒 Senha do Gerente:" FontWeight="Bold" Foreground="#DC2626" Margin="0,0,0,5"/>
+                                    <PasswordBox x:Name="txtSenhaGerente" Height="25" Background="White"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="Cabeçalho do Cupom Não-Fiscal:" Foreground="Gray" FontWeight="SemiBold"/>
+                            <TextBox x:Name="txtCabecalho" Height="50" Padding="5" Margin="0,5,0,10" AcceptsReturn="True" TextWrapping="Wrap" FontFamily="Courier New"/>
+
+                            <TextBlock Text="Mensagem de Rodapé:" Foreground="Gray" FontWeight="SemiBold"/>
+                            <TextBox x:Name="txtRodape" Height="40" Padding="5" Margin="0,5,0,0" AcceptsReturn="True" TextWrapping="Wrap" FontFamily="Courier New"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </TabItem>
+
+            <TabItem Header="💳 Meios de Pagamento" FontSize="14" FontWeight="Bold">
+                <StackPanel Margin="10">
+                    <TextBlock Text="Quais formas de pagamento sua loja aceita?" FontSize="16" FontWeight="Bold" Margin="0,0,0,20"/>
+                    <CheckBox x:Name="chkDinheiro" Content="💵 Dinheiro (Padrão Ativado)" IsChecked="True" IsEnabled="False" FontSize="16" Margin="0,5,0,15" FontWeight="SemiBold"/>
+                    <CheckBox x:Name="chkPix" Content="📱 PIX (Transferência Rápida)" FontSize="16" Margin="0,5,0,0"/>
+                    <StackPanel Orientation="Horizontal" Margin="30,5,0,15">
+                        <TextBlock Text="Sua Chave PIX:" Foreground="Gray" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBox x:Name="txtChavePix" Width="250" Height="30" FontSize="14"/>
+                    </StackPanel>
+                    <CheckBox x:Name="chkCredito" Content="💳 Cartão de Crédito" FontSize="16" Margin="0,5,0,15"/>
+                    <CheckBox x:Name="chkDebito" Content="💳 Cartão de Débito" FontSize="16" Margin="0,5,0,15"/>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
+
+        <Button Grid.Row="2" Content="SALVAR CONFIGURAÇÕES" Height="45" FontSize="16" FontWeight="Bold" Background="#16A34A" Foreground="White" Margin="0,15,0,0" Click="btnSalvar_Click" Cursor="Hand"/>
+    </Grid>
+</Window>

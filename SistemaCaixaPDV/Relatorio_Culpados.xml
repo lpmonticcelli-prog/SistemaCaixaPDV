@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AnaliseProjetoPDV>
+    <VazamentoEncontrado>
+        <Arquivo>BancoDeDados.cs</Arquivo>
+        <Linha>11</Linha>
+        <CodigoIncorreto>public static string ConnectionString =&gt; $"Data Source={CaminhoBanco}";</CodigoIncorreto>
+        <Solucao>Substitua este caminho antigo por: BancoDeDados.ConnectionString</Solucao>
+    </VazamentoEncontrado>
+    <VazamentoEncontrado>
+        <Arquivo>TelaPDV.xaml.cs</Arquivo>
+        <Linha>16</Linha>
+        <CodigoIncorreto>private readonly string conexaoBD = @"Data Source=E:\projetos\SistemaCaixaPDV\SistemaCaixaPDV\banco_pdv.sqlite";</CodigoIncorreto>
+        <Solucao>Substitua este caminho antigo por: BancoDeDados.ConnectionString</Solucao>
+    </VazamentoEncontrado>
+</AnaliseProjetoPDV>

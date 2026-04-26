@@ -1,0 +1,44 @@
+﻿<Window x:Class="SistemaCaixaPDV.TelaBuscaProduto"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Localizar Produto (F6)" Height="450" Width="650"
+        WindowStartupLocation="CenterScreen" WindowStyle="ToolWindow" Background="#F0F4F8" 
+        Loaded="Window_Loaded" KeyDown="Window_KeyDown">
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="White" CornerRadius="8" Padding="10" Margin="0,0,0,10">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="5" ShadowDepth="1" Opacity="0.1"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="🔍 Pesquisar:" FontSize="16" FontWeight="Bold" Foreground="#1E3A8A" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBox x:Name="txtBusca" Grid.Column="1" Height="30" FontSize="16" VerticalContentAlignment="Center" Padding="5,0" TextChanged="txtBusca_TextChanged"/>
+            </Grid>
+        </Border>
+
+        <DataGrid x:Name="gridProdutos" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" 
+                  Background="White" RowHeight="30" FontSize="14" AlternatingRowBackground="#F8FAFC"
+                  MouseDoubleClick="gridProdutos_MouseDoubleClick" SelectionMode="Single">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Código" Binding="{Binding Codigo}" Width="120"/>
+                <DataGridTextColumn Header="Descrição do Produto" Binding="{Binding Descricao}" Width="*"/>
+                <DataGridTextColumn Header="Preço (R$)" Binding="{Binding Preco, StringFormat=C}" Width="120"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Grid Grid.Row="2" Margin="0,15,0,0">
+            <TextBlock Text="Dica: Dê dois cliques no produto para selecionar ou aperte ENTER." Foreground="Gray" FontStyle="Italic" VerticalAlignment="Center"/>
+            <Button x:Name="btnSelecionar" Content="✔️ Confirmar Seleção" HorizontalAlignment="Right" Background="#10B981" Foreground="White" FontWeight="Bold" FontSize="14" Width="180" Height="40" Click="btnSelecionar_Click"/>
+        </Grid>
+    </Grid>
+</Window>

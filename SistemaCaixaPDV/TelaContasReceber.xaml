@@ -1,0 +1,159 @@
+﻿<Window x:Class="SistemaCaixaPDV.TelaContasReceber"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Gestão de Contas a Receber (Crediário/Parcelas)" Height="760" Width="1100"
+        WindowStartupLocation="CenterScreen" Background="#F4F7FC" WindowStyle="ToolWindow"
+        Loaded="Window_Loaded">
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="White" CornerRadius="8" Padding="15" Margin="0,0,0,10">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="5" ShadowDepth="1" Opacity="0.1"/>
+            </Border.Effect>
+            <StackPanel>
+                <TextBlock x:Name="txtTituloFormulario" Text="📝 LANÇAR NOVA CONTA A RECEBER" FontSize="16" FontWeight="Bold" Foreground="#059669" Margin="0,0,0,10"/>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="130"/>
+                        <ColumnDefinition Width="130"/>
+                        <ColumnDefinition Width="120"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                        <TextBlock Text="Cliente (Busque ou Digite)" Foreground="Gray" FontWeight="SemiBold"/>
+                        <ComboBox x:Name="cbClienteForm" Height="30" FontSize="14" IsEditable="True" VerticalContentAlignment="Center" DisplayMemberPath="Nome" SelectedValuePath="Id"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Margin="0,0,10,0">
+                        <TextBlock Text="Descrição / Ref." Foreground="Gray" FontWeight="SemiBold"/>
+                        <TextBox x:Name="txtDescricao" Height="30" FontSize="14" VerticalContentAlignment="Center"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Margin="0,0,10,0">
+                        <TextBlock Text="Tipo Documento" Foreground="Gray" FontWeight="SemiBold"/>
+                        <ComboBox x:Name="cbTipoDoc" Height="30" FontSize="14" VerticalContentAlignment="Center">
+                            <ComboBoxItem Content="Carnê/Promissória" IsSelected="True"/>
+                            <ComboBoxItem Content="Boleto Bancário"/>
+                            <ComboBoxItem Content="Cheque"/>
+                            <ComboBoxItem Content="Caderninho"/>
+                            <ComboBoxItem Content="Outros"/>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="3" Margin="0,0,10,0">
+                        <TextBlock Text="Vencimento" Foreground="Gray" FontWeight="SemiBold"/>
+                        <DatePicker x:Name="dpVencimento" Height="30" FontSize="14"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="4" Margin="0,0,10,0">
+                        <TextBlock Text="Valor (R$)" Foreground="Gray" FontWeight="SemiBold"/>
+                        <TextBox x:Name="txtValor" Height="30" FontSize="14" Text="0,00" TextAlignment="Center" Foreground="#059669" FontWeight="Bold" VerticalContentAlignment="Center"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="5" Orientation="Horizontal" VerticalAlignment="Bottom">
+                        <Button x:Name="btnCancelar" Content="❌ Cancelar" Background="#6B7280" Foreground="White" FontWeight="Bold" FontSize="14" Height="30" Padding="10,0" Margin="0,0,5,0" Cursor="Hand" Visibility="Collapsed" Click="btnCancelar_Click"/>
+                        <Button x:Name="btnSalvar" Content="💾 Gravar" Background="#10B981" Foreground="White" FontWeight="Bold" FontSize="14" Height="30" Padding="15,0" Cursor="Hand" Click="btnSalvar_Click"/>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1" Background="#1E3A8A" CornerRadius="8" Padding="15" Margin="0,0,0,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <Button x:Name="btnBuscarCliente" Content="👤 Filtrar por Cliente" Background="#3B82F6" Foreground="White" FontWeight="Bold" Padding="15,0" Height="30" Click="btnBuscarCliente_Click" Cursor="Hand"/>
+                    <TextBlock x:Name="lblClienteSelecionado" Text="Todos os Clientes" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="14" FontWeight="SemiBold" Foreground="White"/>
+                    <Button Content="Limpar Filtro" Margin="10,0,0,0" Height="30" Padding="10,0" Click="btnLimparFiltro_Click" Cursor="Hand"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <TextBlock Text="Status:" VerticalAlignment="Center" Margin="0,0,5,0" FontWeight="Bold" Foreground="White"/>
+                    <ComboBox x:Name="cbFiltroStatus" Width="110" Height="30" VerticalContentAlignment="Center" SelectionChanged="cbFiltroStatus_SelectionChanged">
+                        <ComboBoxItem Content="Pendente" IsSelected="True"/>
+                        <ComboBoxItem Content="Pago"/>
+                        <ComboBoxItem Content="Todos"/>
+                    </ComboBox>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <DataGrid x:Name="gridContas" Grid.Row="2" AutoGenerateColumns="False" IsReadOnly="True" 
+                  Background="White" RowHeight="35" FontSize="14" AlternatingRowBackground="#F8FAFC"
+                  SelectionMode="Single" SelectionChanged="gridContas_SelectionChanged">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Vencimento" Binding="{Binding DataVencimentoFormatada}" Width="100"/>
+                <DataGridTextColumn Header="Cliente" Binding="{Binding ClienteNome}" Width="200"/>
+                <DataGridTextColumn Header="Descrição" Binding="{Binding Descricao}" Width="*"/>
+                <DataGridTextColumn Header="Tipo Doc." Binding="{Binding TipoDocumento}" Width="120"/>
+                <DataGridTextColumn Header="Valor" Binding="{Binding ValorFormatado}" Width="100"/>
+                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="90">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="FontWeight" Value="Bold"/>
+                            <Style.Triggers>
+                                <Trigger Property="Text" Value="Pendente">
+                                    <Setter Property="Foreground" Value="#EF4444"/>
+                                </Trigger>
+                                <Trigger Property="Text" Value="Pago">
+                                    <Setter Property="Foreground" Value="#10B981"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+
+                <DataGridTemplateColumn Header="Ações" Width="160">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Button Content="✏️ Editar" Background="#F59E0B" Foreground="White" FontWeight="SemiBold" Cursor="Hand" Margin="0,0,5,0" Padding="8,2" Tag="{Binding Id}" Click="btnEditarLinha_Click"/>
+                                <Button Content="🗑️ Excluir" Background="#EF4444" Foreground="White" FontWeight="SemiBold" Cursor="Hand" Padding="8,2" Tag="{Binding Id}" Click="btnExcluirLinha_Click"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Border Grid.Row="3" Background="#E2E8F0" CornerRadius="0,0,12,12" Padding="20" Margin="0,10,0,0">
+            <Grid>
+                <StackPanel HorizontalAlignment="Left" VerticalAlignment="Center">
+                    <TextBlock x:Name="txtTotalPendente" Text="Total Pendente: R$ 0,00" FontSize="18" FontWeight="Bold" Foreground="#EF4444"/>
+                </StackPanel>
+
+                <StackPanel x:Name="panelBaixa" Orientation="Horizontal" HorizontalAlignment="Right" Visibility="Collapsed">
+                    <TextBlock Text="Receber R$" VerticalAlignment="Center" FontWeight="Bold" Margin="0,0,10,0" FontSize="16"/>
+                    <TextBox x:Name="txtValorRecebido" Width="100" Height="35" FontSize="18" FontWeight="Bold" TextAlignment="Center" VerticalContentAlignment="Center"/>
+
+                    <ComboBox x:Name="cbFormaBaixa" Width="130" Height="35" Margin="10,0" VerticalContentAlignment="Center" FontSize="14">
+                        <ComboBoxItem Content="Dinheiro" IsSelected="True"/>
+                        <ComboBoxItem Content="PIX"/>
+                        <ComboBoxItem Content="Cartão Débito"/>
+                        <ComboBoxItem Content="Cartão Crédito"/>
+                    </ComboBox>
+
+                    <Button x:Name="btnFinalizarPagto" Content="✅ Baixar Pagamento" Background="#10B981" Foreground="White" FontWeight="Bold" FontSize="14" Width="180" Height="35" Click="btnFinalizarPagto_Click" Cursor="Hand"/>
+                </StackPanel>
+
+                <TextBlock x:Name="lblSelecione" Text="Selecione uma fatura Pendente na lista acima para registrar o pagamento." HorizontalAlignment="Right" VerticalAlignment="Center" FontStyle="Italic" Foreground="Gray"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

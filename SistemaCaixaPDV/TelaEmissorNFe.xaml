@@ -1,0 +1,195 @@
+﻿<Window x:Class="SistemaCaixaPDV.TelaEmissorNFe"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Emissor de NF-e (Modelo 55)" Height="750" Width="850"
+        WindowStartupLocation="CenterScreen" Background="#F3F4F6"
+        Loaded="Window_Loaded">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="📄 EMISSÃO DE NOTA FISCAL (NF-e)" FontSize="22" FontWeight="Bold" Foreground="#1E3A8A" Margin="0,0,0,15"/>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <Border Background="White" Margin="0,0,10,0" Padding="15">
+                <StackPanel>
+
+                    <Border BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="5" Padding="10" Margin="0,0,0,15" Background="#F0FDF4">
+                        <StackPanel>
+                            <TextBlock Text="Controle de Emissão" FontWeight="Bold" Foreground="#166534" Margin="0,0,0,10"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                    <TextBlock Text="Série da NF-e:" Foreground="Gray" FontWeight="SemiBold"/>
+                                    <TextBox x:Name="txtSerieNFe" Height="30" FontSize="14" Text="1" TextAlignment="Center"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="0,0,10,0">
+                                    <TextBlock Text="Próximo Número:" Foreground="Gray" FontWeight="SemiBold"/>
+                                    <TextBox x:Name="txtNumeroNFe" Height="30" FontSize="14" Text="1" FontWeight="Bold" TextAlignment="Center"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="5" Padding="10" Margin="0,0,0,15">
+                        <StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Destinatário (Cliente)" FontWeight="Bold" Margin="0,0,10,10" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="1" Text="Selecione um cliente para preencher os dados abaixo" Foreground="Gray" FontStyle="Italic" Margin="0,0,0,10" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1.5*"/>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                    <TextBlock Text="Buscar Cadastrado:" Foreground="#2563EB" FontWeight="Bold"/>
+                                    <ComboBox x:Name="cbBuscarCliente" Height="30" FontSize="14" IsEditable="True" SelectionChanged="cbBuscarCliente_SelectionChanged"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="0,0,10,0">
+                                    <TextBlock Text="Nome / Razão Social:" Foreground="Gray"/>
+                                    <TextBox x:Name="txtNomeCliente" Height="30" FontSize="14" IsReadOnly="True" Background="#F9FAFB"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Margin="0,0,10,0">
+                                    <TextBlock Text="CPF / CNPJ:" Foreground="Gray"/>
+                                    <TextBox x:Name="txtCpfCnpjCliente" Height="30" FontSize="14" IsReadOnly="True" Background="#F9FAFB"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="3" Margin="0,0,10,0">
+                                    <TextBlock Text="Inscrição Estadual:" Foreground="Gray"/>
+                                    <TextBox x:Name="txtIeCliente" Height="30" FontSize="14"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="4" VerticalAlignment="Bottom" Margin="0,0,0,5">
+                                    <CheckBox x:Name="chkIsentoIE" Content="Isento" Foreground="Gray" FontWeight="Bold" Checked="chkIsentoIE_Checked" Unchecked="chkIsentoIE_Unchecked"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                    <TextBlock Text="CEP:" Foreground="Gray"/>
+                                    <TextBox x:Name="txtCepCliente" Height="30" FontSize="14" IsReadOnly="True" Background="#F9FAFB"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="0,0,10,0">
+                                    <TextBlock Text="Rua:" Foreground="Gray"/>
+                                    <TextBox x:Name="txtRuaCliente" Height="30" FontSize="14" IsReadOnly="True" Background="#F9FAFB"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Margin="0,0,10,0">
+                                    <TextBlock Text="Nº:" Foreground="Gray"/>
+                                    <TextBox x:Name="txtNumeroCliente" Height="30" FontSize="14" IsReadOnly="True" Background="#F9FAFB"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="3" Margin="0,0,10,0">
+                                    <TextBlock Text="Bairro:" Foreground="Gray"/>
+                                    <TextBox x:Name="txtBairroCliente" Height="30" FontSize="14" IsReadOnly="True" Background="#F9FAFB"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="4" Margin="0,0,10,0">
+                                    <TextBlock Text="Cidade:" Foreground="Gray"/>
+                                    <TextBox x:Name="txtCidadeCliente" Height="30" FontSize="14" IsReadOnly="True" Background="#F9FAFB"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="5">
+                                    <TextBlock Text="UF:" Foreground="Gray"/>
+                                    <TextBox x:Name="txtUfCliente" Height="30" FontSize="14" IsReadOnly="True" Background="#F9FAFB" MaxLength="2"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="5" Padding="10">
+                        <StackPanel>
+                            <TextBlock Text="Inserir Produtos na NF-e" FontWeight="Bold" Margin="0,0,0,10"/>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock Text="Buscar Produto Cadastrado:" Foreground="#2563EB" FontWeight="Bold"/>
+                                <ComboBox x:Name="cbBuscarProduto" Height="30" FontSize="14" IsEditable="True" SelectionChanged="cbBuscarProduto_SelectionChanged"/>
+                            </StackPanel>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1.5*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                    <TextBlock Text="Descrição (Para a Nota):" Foreground="Gray"/>
+                                    <TextBox x:Name="txtProduto" Height="30" FontSize="14"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="0,0,10,0">
+                                    <TextBlock Text="NCM:" Foreground="Gray"/>
+                                    <TextBox x:Name="txtNcm" Height="30" FontSize="14"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Margin="0,0,10,0">
+                                    <TextBlock Text="Qtd:" Foreground="Gray"/>
+                                    <TextBox x:Name="txtQtd" Height="30" FontSize="14" Text="1" TextChanged="CalcularTotalProduto"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="3">
+                                    <TextBlock Text="Valor Unit (R$):" Foreground="Gray"/>
+                                    <TextBox x:Name="txtValor" Height="30" FontSize="14" TextChanged="CalcularTotalProduto"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid Margin="0,15,0,15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Button Grid.Column="0" Content="➕ Adicionar Produto" Height="35" Width="180" Background="#10B981" Foreground="White" FontWeight="Bold" FontSize="14" Cursor="Hand" Click="btnAdicionarProduto_Click"/>
+
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                    <TextBlock Text="Total do Item:" FontSize="14" FontWeight="Bold" Foreground="Gray" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <TextBlock x:Name="txtTotalItem" Text="R$ 0,00" FontSize="18" FontWeight="Bold" Foreground="#DC2626"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <DataGrid x:Name="dgProdutosNFe" AutoGenerateColumns="False" IsReadOnly="True" Height="150" Background="#F9FAFB" Margin="0,0,0,10">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Descrição" Binding="{Binding Descricao}" Width="*"/>
+                                    <DataGridTextColumn Header="NCM" Binding="{Binding Ncm}" Width="100"/>
+                                    <DataGridTextColumn Header="Qtd" Binding="{Binding Quantidade}" Width="60"/>
+                                    <DataGridTextColumn Header="Valor Un." Binding="{Binding ValorUnitario, StringFormat=C}" Width="100"/>
+                                    <DataGridTextColumn Header="Total" Binding="{Binding Total, StringFormat=C}" Width="120"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <Grid>
+                                <Button Content="➖ Remover Produto Selecionado" Height="30" Width="220" HorizontalAlignment="Left" Background="#EF4444" Foreground="White" FontWeight="Bold" Cursor="Hand" Click="btnRemoverProduto_Click"/>
+
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                    <TextBlock Text="TOTAL DA NF-e:" FontSize="16" FontWeight="Black" Foreground="Black" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <TextBlock x:Name="txtTotalNFe" Text="R$ 0,00" FontSize="22" FontWeight="Black" Foreground="#2563EB"/>
+                                </StackPanel>
+                            </Grid>
+
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </ScrollViewer>
+
+        <Button Grid.Row="2" Content="🚀 EMITIR NF-e COM TODOS OS PRODUTOS" Height="50" FontSize="18" FontWeight="Bold" Background="#2563EB" Foreground="White" Margin="0,15,0,0" Cursor="Hand" Click="btnEmitirNFe_Click"/>
+    </Grid>
+</Window>

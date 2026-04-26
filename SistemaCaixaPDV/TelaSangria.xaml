@@ -1,0 +1,41 @@
+﻿<Window x:Class="SistemaCaixaPDV.TelaSangria"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Controle de Caixa - Sangria/Suprimento" Height="480" Width="556"
+        WindowStartupLocation="CenterOwner" WindowStyle="ToolWindow" Background="#F8FAFC"
+        KeyDown="Window_KeyDown" Loaded="Window_Loaded">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="💵 MOVIMENTAÇÃO DE CAIXA" FontSize="22" FontWeight="Bold" Foreground="#1E3A8A" HorizontalAlignment="Center" Margin="0,0,0,25"/>
+
+        <Border Grid.Row="1" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="15" Margin="0,0,0,20">
+            <StackPanel>
+                <TextBlock Text="Tipo de Movimentação:" FontWeight="Bold" Foreground="Gray" Margin="0,0,0,10"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <RadioButton x:Name="rbRetirada" Content="🔴 SANGRIA (Retirada)" IsChecked="True" FontSize="16" FontWeight="Bold" Foreground="#DC2626" Margin="0,0,20,0" Checked="RadioButton_Checked"/>
+                    <RadioButton x:Name="rbEntrada" Content="🟢 SUPRIMENTO (Entrada)" FontSize="16" FontWeight="Bold" Foreground="#16A34A" Checked="RadioButton_Checked"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <StackPanel Grid.Row="2" Margin="0,0,0,20">
+            <TextBlock x:Name="lblValor" Text="Valor a ser retirado (R$):" FontWeight="Bold" Foreground="Gray" Margin="0,0,0,5"/>
+            <TextBox x:Name="txtValor" Height="45" FontSize="24" FontWeight="Bold" TextAlignment="Center" Foreground="#333"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="3" Margin="0,0,0,20">
+            <TextBlock Text="Motivo / Observação:" FontWeight="Bold" Foreground="Gray" Margin="0,0,0,5"/>
+            <TextBox x:Name="txtMotivo" Height="60" FontSize="16" AcceptsReturn="True" TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <Button Grid.Row="4" x:Name="btnConfirmar" Content="CONFIRMAR SANGRIA (ENTER)" FontSize="16" FontWeight="Bold" Background="#DC2626" Foreground="White" Height="45" VerticalAlignment="Bottom" Click="btnConfirmar_Click" Cursor="Hand"/>
+    </Grid>
+</Window>

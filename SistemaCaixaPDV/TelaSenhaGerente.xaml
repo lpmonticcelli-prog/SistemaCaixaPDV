@@ -1,0 +1,32 @@
+﻿<Window x:Class="SistemaCaixaPDV.TelaSenhaGerente"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Autorização Necessária" Height="305" Width="350"
+        WindowStartupLocation="CenterOwner" WindowStyle="ToolWindow" Background="#F8FAFC"
+        KeyDown="Window_KeyDown" Loaded="Window_Loaded">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,15">
+            <TextBlock Text="🔒" FontSize="24" Margin="0,0,10,0"/>
+            <TextBlock FontSize="20" FontWeight="Bold" Foreground="#B91C1C" VerticalAlignment="Center" Text="Autorização Necessária"/>
+        </StackPanel>
+
+        <TextBlock Grid.Row="1" Text="Por favor, introduza a senha do gerente para autorizar esta operação:" 
+                   TextWrapping="Wrap" TextAlignment="Center" Foreground="Gray" Margin="0,0,0,15"/>
+
+        <PasswordBox Grid.Row="2" x:Name="txtSenha" Height="40" FontSize="20" HorizontalContentAlignment="Center" 
+                     Background="White" BorderBrush="#CBD5E1" BorderThickness="2"/>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,20,0,0">
+            <Button Content="CANCELAR (ESC)" Width="130" Height="35" Background="#E2E8F0" Foreground="#333" FontWeight="Bold" Margin="0,0,10,0" Click="btnCancelar_Click" Cursor="Hand"/>
+            <Button Content="AUTORIZAR (ENTER)" Width="150" Height="35" Background="#16A34A" Foreground="White" FontWeight="Bold" Click="btnAutorizar_Click" Cursor="Hand"/>
+        </StackPanel>
+    </Grid>
+</Window>

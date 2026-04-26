@@ -1,0 +1,18 @@
+﻿<Window x:Class="SistemaCaixaPDV.GeradorChaves"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Painel do Desenvolvedor - Gerador de Licenças" Height="315" Width="1035"
+        WindowStartupLocation="CenterScreen" Background="#2C3E50">
+
+    <StackPanel Margin="20">
+        <TextBlock Text="GERADOR DE CHAVES PRO" FontSize="22" FontWeight="Bold" Foreground="#F1C40F" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+
+        <TextBlock Text="1. Cole aqui o Código da Máquina do Cliente:" Foreground="White" FontSize="14" FontWeight="Bold" Margin="0,0,0,5"/>
+        <TextBox x:Name="txtCodigoCliente" Height="35" FontSize="18" Margin="0,0,0,20" TextAlignment="Center" FontWeight="Bold"/>
+
+        <Button Content="GERAR CHAVE DE LIBERAÇÃO" Height="45" Background="#27AE60" Foreground="White" FontWeight="Bold" FontSize="16" Click="btnGerar_Click" Cursor="Hand"/>
+
+        <TextBlock Text="2. Envie esta chave para o cliente:" Foreground="White" FontSize="14" FontWeight="Bold" Margin="0,20,0,5" HorizontalAlignment="Center"/>
+        <TextBox x:Name="txtChaveGerada" Height="45" FontSize="24" FontWeight="Bold" Foreground="#C0392B" Background="#ECF0F1" TextAlignment="Center" IsReadOnly="True"/>
+    </StackPanel>
+</Window>

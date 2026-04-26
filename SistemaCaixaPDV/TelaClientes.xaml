@@ -1,0 +1,352 @@
+﻿<Window x:Class="SistemaCaixaPDV.TelaClientes"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Cadastro de Clientes" Height="750" Width="1050"
+        WindowStartupLocation="CenterScreen" WindowStyle="ToolWindow" Background="#F0F4F8">
+
+    <Window.Resources>
+        <Style x:Key="ModernLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="Gray"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,0,0,2"/>
+        </Style>
+
+        <Style x:Key="ModernTextBox" TargetType="TextBox">
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="5,0"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Margin" Value="0,0,10,10"/>
+        </Style>
+
+        <Style x:Key="ModernCombo" TargetType="ComboBox">
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,10,10"/>
+        </Style>
+
+        <Style x:Key="MenuButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Margin" Value="5,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Width" Value="80"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="White" CornerRadius="10" Padding="10" Margin="0,0,0,10">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="10" ShadowDepth="1" Opacity="0.1"/>
+            </Border.Effect>
+            <Grid>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <Button x:Name="btnNovo" Style="{StaticResource MenuButton}" Click="btnNovo_Click">
+                        <StackPanel>
+                            <TextBlock Text="➕" FontSize="24" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Novo" HorizontalAlignment="Center" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="btnAlterar" Style="{StaticResource MenuButton}" Click="btnAlterar_Click">
+                        <StackPanel>
+                            <TextBlock Text="✏️" FontSize="24" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Alterar" HorizontalAlignment="Center" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="btnGravar" Style="{StaticResource MenuButton}" Click="btnGravar_Click">
+                        <StackPanel>
+                            <TextBlock Text="💾" FontSize="24" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Gravar" HorizontalAlignment="Center" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="btnLocalizar" Style="{StaticResource MenuButton}" Width="110" Click="btnLocalizar_Click">
+                        <StackPanel>
+                            <TextBlock Text="🔍" FontSize="24" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Localizar Cliente" HorizontalAlignment="Center" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="btnExcluir" Style="{StaticResource MenuButton}" Click="btnExcluir_Click">
+                        <StackPanel>
+                            <TextBlock Text="❌" FontSize="24" Foreground="Red" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Excluir" Foreground="Red" HorizontalAlignment="Center" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <Button x:Name="btnFechar" Grid.Column="1" HorizontalAlignment="Right" Style="{StaticResource MenuButton}" Click="btnFechar_Click">
+                    <StackPanel>
+                        <TextBlock Text="🚪" FontSize="24" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Fechar" Foreground="Red" HorizontalAlignment="Center" FontWeight="Bold"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+
+        <TabControl Grid.Row="1" Grid.RowSpan="2" Background="White" BorderBrush="#CBD5E1" Margin="0,5,0,0">
+
+            <TabItem Header="Cadastro Cliente" FontSize="14" FontWeight="Bold">
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="250"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Margin="0,0,15,0">
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="110"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="130"/>
+                                <ColumnDefinition Width="130"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Código" Style="{StaticResource ModernLabel}"/>
+                                <TextBox x:Name="txtCodigo" Text="01" IsReadOnly="True" Background="#F1F5F9" Style="{StaticResource ModernTextBox}" HorizontalContentAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Data Cadastro" Style="{StaticResource ModernLabel}"/>
+                                <TextBox x:Name="txtDataCadastro" Style="{StaticResource ModernTextBox}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Nome do Cliente" Style="{StaticResource ModernLabel}"/>
+                                <TextBox x:Name="txtNome" Style="{StaticResource ModernTextBox}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="3">
+                                <TextBlock Text="Celular" Style="{StaticResource ModernLabel}"/>
+                                <TextBox x:Name="txtCelular" Style="{StaticResource ModernTextBox}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="4">
+                                <TextBlock Text="Fone residencial" Style="{StaticResource ModernLabel}"/>
+                                <TextBox x:Name="txtTelefoneFixo" Style="{StaticResource ModernTextBox}"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="160"/>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="90"/>
+                                <ColumnDefinition Width="110"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="TIPO" Style="{StaticResource ModernLabel}"/>
+                                <ComboBox x:Name="cbTipo" Style="{StaticResource ModernCombo}">
+                                    <ComboBoxItem Content="Física" IsSelected="True"/>
+                                    <ComboBoxItem Content="Jurídica"/>
+                                </ComboBox>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="CPF / CNPJ" Style="{StaticResource ModernLabel}"/>
+                                <TextBox x:Name="txtCpfCnpj" Style="{StaticResource ModernTextBox}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="RG" Style="{StaticResource ModernLabel}"/>
+                                <TextBox x:Name="txtRg" Style="{StaticResource ModernTextBox}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="3">
+                                <TextBlock Text="Emissor" Style="{StaticResource ModernLabel}"/>
+                                <TextBox x:Name="txtEmissor" Style="{StaticResource ModernTextBox}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="4">
+                                <TextBlock Text="Dt. Emissão" Style="{StaticResource ModernLabel}"/>
+                                <TextBox x:Name="txtDtEmissao" Style="{StaticResource ModernTextBox}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="5">
+                                <TextBlock Text="Inscrição Estadual" Style="{StaticResource ModernLabel}"/>
+                                <TextBox x:Name="txtInscricao" Style="{StaticResource ModernTextBox}"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="180"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="CEP" Style="{StaticResource ModernLabel}"/>
+                                <TextBox x:Name="txtCep" Style="{StaticResource ModernTextBox}" TextChanged="txtCep_TextChanged"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Endereço" Style="{StaticResource ModernLabel}"/>
+                                <TextBox x:Name="txtEndereco" Style="{StaticResource ModernTextBox}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Nº" Style="{StaticResource ModernLabel}" Foreground="Red"/>
+                                <TextBox x:Name="txtNumero" Style="{StaticResource ModernTextBox}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="3">
+                                <TextBlock Text="Complemento" Style="{StaticResource ModernLabel}"/>
+                                <TextBox x:Name="txtComplemento" Style="{StaticResource ModernTextBox}"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="180"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="60"/>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="110"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Bairro" Style="{StaticResource ModernLabel}"/>
+                                <TextBox x:Name="txtBairro" Style="{StaticResource ModernTextBox}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Cidade" Style="{StaticResource ModernLabel}"/>
+                                <TextBox x:Name="txtCidade" Style="{StaticResource ModernTextBox}"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="UF" Style="{StaticResource ModernLabel}"/>
+                                <ComboBox x:Name="cbUf" Style="{StaticResource ModernCombo}" IsEditable="True">
+                                    <ComboBoxItem Content="AC"/>
+                                    <ComboBoxItem Content="AL"/>
+                                    <ComboBoxItem Content="AP"/>
+                                    <ComboBoxItem Content="AM"/>
+                                    <ComboBoxItem Content="BA"/>
+                                    <ComboBoxItem Content="CE"/>
+                                    <ComboBoxItem Content="DF"/>
+                                    <ComboBoxItem Content="ES"/>
+                                    <ComboBoxItem Content="GO"/>
+                                    <ComboBoxItem Content="MA"/>
+                                    <ComboBoxItem Content="MT"/>
+                                    <ComboBoxItem Content="MS"/>
+                                    <ComboBoxItem Content="MG"/>
+                                    <ComboBoxItem Content="PA"/>
+                                    <ComboBoxItem Content="PB"/>
+                                    <ComboBoxItem Content="PR"/>
+                                    <ComboBoxItem Content="PE"/>
+                                    <ComboBoxItem Content="PI"/>
+                                    <ComboBoxItem Content="RJ"/>
+                                    <ComboBoxItem Content="RN"/>
+                                    <ComboBoxItem Content="RS"/>
+                                    <ComboBoxItem Content="RO"/>
+                                    <ComboBoxItem Content="RR"/>
+                                    <ComboBoxItem Content="SC"/>
+                                    <ComboBoxItem Content="SP" IsSelected="True"/>
+                                    <ComboBoxItem Content="SE"/>
+                                    <ComboBoxItem Content="TO"/>
+                                </ComboBox>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="3">
+                                <TextBlock Text="Naturalidade" Style="{StaticResource ModernLabel}"/>
+                                <TextBox x:Name="txtNaturalidade" Style="{StaticResource ModernTextBox}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="4">
+                                <TextBlock Text="Dt. Nasc" Style="{StaticResource ModernLabel}"/>
+                                <TextBox x:Name="txtDtNasc" Style="{StaticResource ModernTextBox}"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Estado Civil" Style="{StaticResource ModernLabel}"/>
+                                <ComboBox x:Name="cbEstadoCivil" Style="{StaticResource ModernCombo}">
+                                    <ComboBoxItem Content="Solteiro" IsSelected="True"/>
+                                    <ComboBoxItem Content="Casado"/>
+                                    <ComboBoxItem Content="Outros"/>
+                                </ComboBox>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Bloqueio" Style="{StaticResource ModernLabel}"/>
+                                <ComboBox x:Name="cbBloqueio" Style="{StaticResource ModernCombo}" SelectionChanged="cbBloqueio_SelectionChanged">
+                                    <ComboBoxItem Content="Desbloqueado" IsSelected="True"/>
+                                    <ComboBoxItem Content="Bloqueado"/>
+                                </ComboBox>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="E-mail" Style="{StaticResource ModernLabel}"/>
+                                <TextBox x:Name="txtEmail" Style="{StaticResource ModernTextBox}"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <StackPanel>
+                            <TextBlock Text="Pai" Style="{StaticResource ModernLabel}"/>
+                            <TextBox x:Name="txtPai" Style="{StaticResource ModernTextBox}"/>
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock Text="Mãe" Style="{StaticResource ModernLabel}"/>
+                            <TextBox x:Name="txtMae" Style="{StaticResource ModernTextBox}"/>
+                        </StackPanel>
+
+                        <StackPanel>
+                            <TextBlock Text="Obs.:" Style="{StaticResource ModernLabel}"/>
+                            <TextBox x:Name="txtObservacoes" Height="50" TextWrapping="Wrap" AcceptsReturn="True" VerticalContentAlignment="Top" Padding="5" Style="{StaticResource ModernTextBox}"/>
+                        </StackPanel>
+
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1">
+
+                        <TextBlock Text="Foto Cliente" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,5"/>
+                        <Border BorderBrush="#CBD5E1" BorderThickness="1" Width="150" Height="180" Background="#F8FAFC" HorizontalAlignment="Center">
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="ℹ️" FontSize="50" Foreground="#3B82F6" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Sem Foto" FontWeight="Bold" FontSize="16" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        <Button x:Name="btnFoto" Content="Inserir Foto Cliente" Background="#E2E8F0" Height="25" Width="150" Margin="0,5,0,10" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Atenção aos arquivos de imagem compatível bmp, jpg ou png" Foreground="Gray" FontStyle="Italic" TextWrapping="Wrap" TextAlignment="Center" FontSize="11" Margin="0,0,0,20"/>
+
+                        <GroupBox Header=" Crédito venda a prazo/carnê " BorderBrush="#EF4444" FontWeight="Bold" Padding="10">
+                            <StackPanel>
+                                <Grid Margin="0,5">
+                                    <TextBlock Text="(+) Crédito liberado R$:" Foreground="Gray" VerticalAlignment="Center"/>
+                                    <TextBox x:Name="txtCreditoDisponivel" Width="80" Text="0,00" HorizontalAlignment="Right" Background="White" BorderBrush="#CBD5E1" HorizontalContentAlignment="Right" Padding="0,0,5,0" TextChanged="AtualizarSaldo_TextChanged"/>
+                                </Grid>
+                                <Grid Margin="0,5">
+                                    <TextBlock Text="(-) Crédito utilizado:" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <TextBox x:Name="txtCreditoUtilizado" Width="80" Text="0,00" Foreground="Red" HorizontalAlignment="Right" Background="#F1F5F9" BorderBrush="#CBD5E1" HorizontalContentAlignment="Right" Padding="0,0,5,0" IsReadOnly="True" TextChanged="AtualizarSaldo_TextChanged"/>
+                                </Grid>
+                                <Border BorderBrush="Black" BorderThickness="0,0,0,1" Margin="0,5"/>
+                                <Grid Margin="0,5">
+                                    <TextBlock Text="(=) Saldo disponível:" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <TextBox x:Name="txtSaldoDisponivel" Width="80" Text="0,00" Foreground="#1E3A8A" Background="#FEF08A" HorizontalAlignment="Right" BorderBrush="#CBD5E1" HorizontalContentAlignment="Right" Padding="0,0,5,0" FontWeight="Bold" IsReadOnly="True"/>
+                                </Grid>
+                            </StackPanel>
+                        </GroupBox>
+
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Histórico de Vendas/O.S." FontSize="14"/>
+            <TabItem Header="Contas a Receber" FontSize="14"/>
+            <TabItem Header="Vale compras" FontSize="14"/>
+        </TabControl>
+
+        <StackPanel Grid.Row="3" Margin="0,10,0,0">
+            <TextBlock Text="Dica: O sistema não aceita gravar mais de um cliente com o mesmo nome!" Foreground="Red" FontStyle="Italic" FontWeight="SemiBold" Margin="0,2"/>
+            <TextBlock Text="Dica 2: Digite os 8 números do CEP e o endereço será preenchido automaticamente (requer internet)." Foreground="Green" FontStyle="Italic" FontWeight="SemiBold"/>
+        </StackPanel>
+
+    </Grid>
+</Window>
