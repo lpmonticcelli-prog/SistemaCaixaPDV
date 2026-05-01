@@ -8,13 +8,20 @@ namespace SistemaCaixaPDV
 {
     public static class BancoDeDados
     {
-        public static readonly string CaminhoBanco = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bancopdv_v3.sqlite");
-        public static string ConnectionString => $"Data Source={CaminhoBanco}";
+        // =========================================================================================
+        // ARQUITETURA DE PRODUÇÃO: Redirecionamento para ProgramData (Evita bloqueio de UAC/Permissão)
+        // =========================================================================================
+        public static readonly string PastaDados = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "SistemaCaixaPDV");
+        public static readonly string CaminhoBanco = Path.Combine(PastaDados, "bancopdv_v3.sqlite");
+        public static string ConnectionString => $"Data Source={CaminhoBanco};";
 
         public static void InicializarBanco()
         {
             try
             {
+                // Garante que a pasta existe antes de tentar criar o banco
+                if (!Directory.Exists(PastaDados)) Directory.CreateDirectory(PastaDados);
+
                 using (var conexao = new SqliteConnection(ConnectionString))
                 {
                     conexao.Open();
@@ -30,12 +37,25 @@ namespace SistemaCaixaPDV
                         @"CREATE TABLE IF NOT EXISTS ControleNFe (Id INTEGER PRIMARY KEY, Serie INTEGER, Numero INTEGER)",
                         @"CREATE TABLE IF NOT EXISTS HistoricoCompras (Id INTEGER PRIMARY KEY AUTOINCREMENT, CodigoProduto TEXT, DataCompra TEXT, Fornecedor TEXT, NumeroNFe TEXT, Quantidade NUMERIC, CustoUnitario NUMERIC, Total NUMERIC)",
                         @"CREATE TABLE IF NOT EXISTS HistoricoEstoque (Id INTEGER PRIMARY KEY AUTOINCREMENT, CodigoProduto TEXT, DataHora TEXT, Tipo TEXT, Quantidade NUMERIC, Motivo TEXT)",
-                        @"CREATE TABLE IF NOT EXISTS ProdutoVariacoes (Id INTEGER PRIMARY KEY AUTOINCREMENT, CodigoProduto TEXT, Atributo TEXT, Valor TEXT, CodigoBarras TEXT, Estoque NUMERIC)"
+                        @"CREATE TABLE IF NOT EXISTS ProdutoVariacoes (Id INTEGER PRIMARY KEY AUTOINCREMENT, CodigoProduto TEXT, Atributo TEXT, Valor TEXT, CodigoBarras TEXT, Estoque NUMERIC)",
+                        @"CREATE TABLE IF NOT EXISTS OrdemServico (Id INTEGER PRIMARY KEY AUTOINCREMENT, DataEntrada TEXT, DataSaida TEXT, Status TEXT, Problema TEXT, Laudo TEXT, Imei TEXT, Equipamento TEXT, MarcaModelo TEXT, Total NUMERIC)",
+                        @"CREATE TABLE IF NOT EXISTS OrdemServicoItens (Id INTEGER PRIMARY KEY AUTOINCREMENT, OS_ID INTEGER, CodigoProduto TEXT, Quantidade NUMERIC, ValorUnitario NUMERIC, Subtotal NUMERIC, FOREIGN KEY(OS_ID) REFERENCES OrdemServico(Id))"
                     };
-                    foreach (var sql in comandos) { using (var cmd = new SqliteCommand(sql, conexao)) { cmd.ExecuteNonQuery(); } }
 
-                    // BLINDAGEM: Adiciona a coluna de crédito se ela não existir nas instalações antigas
-                    try { using (var cmdCol = new SqliteCommand("ALTER TABLE Clientes ADD COLUMN CreditoLiberado NUMERIC DEFAULT 0", conexao)) cmdCol.ExecuteNonQuery(); } catch { }
+                    foreach (var sql in comandos)
+                    {
+                        using (var cmd = new SqliteCommand(sql, conexao))
+                        {
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+
+                    try
+                    {
+                        using (var cmdCol = new SqliteCommand("ALTER TABLE Clientes ADD COLUMN CreditoLiberado NUMERIC DEFAULT 0", conexao))
+                            cmdCol.ExecuteNonQuery();
+                    }
+                    catch { }
                 }
             }
             catch { }
@@ -55,11 +75,16 @@ namespace SistemaCaixaPDV
 
                     using (var cmd = new SqliteCommand(sql, cx))
                     {
-                        cmd.Parameters.AddWithValue("@cod", cod); cmd.Parameters.AddWithValue("@desc", desc);
-                        cmd.Parameters.AddWithValue("@unid", unid ?? "UN"); cmd.Parameters.AddWithValue("@pCompra", pCompra);
-                        cmd.Parameters.AddWithValue("@margem", margem); cmd.Parameters.AddWithValue("@pVenda", pVenda);
-                        cmd.Parameters.AddWithValue("@pPrazo", pPrazo); cmd.Parameters.AddWithValue("@est", estMin);
-                        cmd.Parameters.AddWithValue("@obs", obs ?? ""); cmd.Parameters.AddWithValue("@foto", caminhoFotoAtual ?? "");
+                        cmd.Parameters.AddWithValue("@cod", cod);
+                        cmd.Parameters.AddWithValue("@desc", desc);
+                        cmd.Parameters.AddWithValue("@unid", unid ?? "UN");
+                        cmd.Parameters.AddWithValue("@pCompra", pCompra);
+                        cmd.Parameters.AddWithValue("@margem", margem);
+                        cmd.Parameters.AddWithValue("@pVenda", pVenda);
+                        cmd.Parameters.AddWithValue("@pPrazo", pPrazo);
+                        cmd.Parameters.AddWithValue("@est", estMin);
+                        cmd.Parameters.AddWithValue("@obs", obs ?? "");
+                        cmd.Parameters.AddWithValue("@foto", caminhoFotoAtual ?? "");
                         cmd.ExecuteNonQuery();
                     }
                 }
@@ -81,9 +106,11 @@ namespace SistemaCaixaPDV
                     {
                         if (r.Read())
                         {
-                            conf.NomeLoja = r["NomeLoja"].ToString(); conf.SenhaGerente = r["SenhaGerente"].ToString();
-                            conf.TipoImpressora = r["TipoImpressora"].ToString(); conf.AceitaPix = r["AceitaPix"].ToString() == "1";
-                            conf.ChavePix = r["ChavePix"].ToString();
+                            conf.NomeLoja = r["NomeLoja"]?.ToString() ?? "";
+                            conf.SenhaGerente = r["SenhaGerente"]?.ToString() ?? "";
+                            conf.TipoImpressora = r["TipoImpressora"]?.ToString() ?? "58mm";
+                            conf.AceitaPix = r["AceitaPix"]?.ToString() == "1";
+                            conf.ChavePix = r["ChavePix"]?.ToString() ?? "";
                         }
                     }
                 }
@@ -107,7 +134,18 @@ namespace SistemaCaixaPDV
                 {
                     cx.Open();
                     using (var cmd = new SqliteCommand("SELECT Id, Nome, CpfCnpj FROM Clientes ORDER BY Nome", cx))
-                    using (var r = cmd.ExecuteReader()) { while (r.Read()) { lista.Add(new Cliente { Id = Convert.ToInt32(r["Id"]), Nome = r["Nome"].ToString(), Cpf = r["CpfCnpj"].ToString() }); } }
+                    using (var r = cmd.ExecuteReader())
+                    {
+                        while (r.Read())
+                        {
+                            lista.Add(new Cliente
+                            {
+                                Id = Convert.ToInt32(r["Id"]),
+                                Nome = r["Nome"]?.ToString() ?? "",
+                                Cpf = r["CpfCnpj"]?.ToString() ?? ""
+                            });
+                        }
+                    }
                 }
             }
             catch { }
@@ -123,7 +161,14 @@ namespace SistemaCaixaPDV
                 {
                     cx.Open();
                     using (var cmd = new SqliteCommand("SELECT Nome FROM Clientes ORDER BY Nome", cx))
-                    using (var r = cmd.ExecuteReader()) { while (r.Read()) { lista.Add(r.GetString(0)); } }
+                    using (var r = cmd.ExecuteReader())
+                    {
+                        while (r.Read())
+                        {
+                            string nome = r.IsDBNull(0) ? string.Empty : r.GetString(0);
+                            lista.Add(nome);
+                        }
+                    }
                 }
             }
             catch { }
@@ -140,12 +185,23 @@ namespace SistemaCaixaPDV
                     using (var cmd = new SqliteCommand("SELECT Descricao, Preco FROM Produtos WHERE Codigo=@c", cx))
                     {
                         cmd.Parameters.AddWithValue("@c", cod);
-                        using (var r = cmd.ExecuteReader()) { if (r.Read()) return new Produto { Codigo = cod, Descricao = r.GetString(0), Preco = r.GetDecimal(1) }; }
+                        using (var r = cmd.ExecuteReader())
+                        {
+                            if (r.Read())
+                            {
+                                return new Produto
+                                {
+                                    Codigo = cod,
+                                    Descricao = r.IsDBNull(0) ? "" : r.GetString(0),
+                                    Preco = r.GetDecimal(1)
+                                };
+                            }
+                        }
                     }
                 }
             }
             catch { }
-            return null;
+            return null!;
         }
 
         public static List<Produto> BuscarProdutosPorNome(string termo)
@@ -166,8 +222,8 @@ namespace SistemaCaixaPDV
                             {
                                 lista.Add(new Produto
                                 {
-                                    Codigo = r["Codigo"].ToString(),
-                                    Descricao = r["Descricao"].ToString(),
+                                    Codigo = r["Codigo"]?.ToString() ?? "",
+                                    Descricao = r["Descricao"]?.ToString() ?? "",
                                     Preco = Convert.ToDecimal(r["Preco"])
                                 });
                             }
@@ -232,10 +288,10 @@ namespace SistemaCaixaPDV
                                 lista.Add(new ProdutoVariacaoModel
                                 {
                                     Id = Convert.ToInt32(r["Id"]),
-                                    CodigoProduto = r["CodigoProduto"].ToString(),
-                                    Atributo = r["Atributo"].ToString(),
-                                    Valor = r["Valor"].ToString(),
-                                    CodigoBarras = r["CodigoBarras"].ToString(),
+                                    CodigoProduto = r["CodigoProduto"]?.ToString() ?? "",
+                                    Atributo = r["Atributo"]?.ToString() ?? "",
+                                    Valor = r["Valor"]?.ToString() ?? "",
+                                    CodigoBarras = r["CodigoBarras"]?.ToString() ?? "",
                                     Estoque = r["Estoque"] == DBNull.Value ? 0 : Convert.ToDecimal(r["Estoque"])
                                 });
                             }
@@ -260,7 +316,15 @@ namespace SistemaCaixaPDV
                     {
                         while (r.Read())
                         {
-                            lista.Add(new RelatorioClienteModel { Codigo = r.GetInt32(0).ToString("D3"), Nome = r.GetString(1), CPF = r.IsDBNull(2) ? "" : r.GetString(2), Celular = r.IsDBNull(3) ? "" : r.GetString(3), Cidade = r.IsDBNull(4) ? "" : r.GetString(4), UF = r.IsDBNull(5) ? "" : r.GetString(5) });
+                            lista.Add(new RelatorioClienteModel
+                            {
+                                Codigo = r.GetInt32(0).ToString("D3"),
+                                Nome = r.IsDBNull(1) ? "" : r.GetString(1),
+                                CPF = r.IsDBNull(2) ? "" : r.GetString(2),
+                                Celular = r.IsDBNull(3) ? "" : r.GetString(3),
+                                Cidade = r.IsDBNull(4) ? "" : r.GetString(4),
+                                UF = r.IsDBNull(5) ? "" : r.GetString(5)
+                            });
                         }
                     }
                 }
@@ -282,7 +346,14 @@ namespace SistemaCaixaPDV
                     {
                         while (r.Read())
                         {
-                            lista.Add(new RelatorioProdutoModel { Codigo = r.GetString(0), Descricao = r.GetString(1), Unidade = r.IsDBNull(2) ? "UN" : r.GetString(2), PrecoVenda = r.GetDecimal(3).ToString("C"), Estoque = r.IsDBNull(4) ? "0" : r.GetDecimal(4).ToString("N2") });
+                            lista.Add(new RelatorioProdutoModel
+                            {
+                                Codigo = r.IsDBNull(0) ? "" : r.GetString(0),
+                                Descricao = r.IsDBNull(1) ? "" : r.GetString(1),
+                                Unidade = r.IsDBNull(2) ? "UN" : r.GetString(2),
+                                PrecoVenda = r.GetDecimal(3).ToString("C"),
+                                Estoque = r.IsDBNull(4) ? "0" : r.GetDecimal(4).ToString("N2")
+                            });
                         }
                     }
                 }
@@ -308,10 +379,19 @@ namespace SistemaCaixaPDV
                         {
                             while (r.Read())
                             {
-                                decimal valor = r.GetDecimal(3); somaTotal += valor;
-                                string dataBonita = r.GetString(1);
+                                decimal valor = r.GetDecimal(3);
+                                somaTotal += valor;
+
+                                string dataBonita = r.IsDBNull(1) ? "" : r.GetString(1);
                                 if (DateTime.TryParse(dataBonita, out DateTime dtParsed)) dataBonita = dtParsed.ToString("dd/MM/yyyy HH:mm");
-                                lista.Add(new RelatorioVendaModel { NumVenda = r.GetInt32(0).ToString("D4"), DataVenda = dataBonita, FormaPagto = r.GetString(2), ValorTotal = valor.ToString("C") });
+
+                                lista.Add(new RelatorioVendaModel
+                                {
+                                    NumVenda = r.GetInt32(0).ToString("D4"),
+                                    DataVenda = dataBonita,
+                                    FormaPagto = r.IsDBNull(2) ? "" : r.GetString(2),
+                                    ValorTotal = valor.ToString("C")
+                                });
                             }
                         }
                     }
@@ -372,11 +452,20 @@ namespace SistemaCaixaPDV
                             {
                                 decimal valor = r["Valor"] == DBNull.Value ? 0 : Convert.ToDecimal(r["Valor"]);
                                 totalFiltro += valor;
-                                string dataBanco = r["DataVencimento"] == DBNull.Value ? "" : r["DataVencimento"].ToString();
+
+                                string dataBanco = r["DataVencimento"]?.ToString() ?? "";
                                 string dataExibicao = dataBanco;
                                 if (DateTime.TryParse(dataBanco, out DateTime dt)) dataExibicao = dt.ToString("dd/MM/yyyy");
 
-                                lista.Add(new DespesaModel { Id = Convert.ToInt32(r["Id"]), Descricao = r["Descricao"].ToString(), Categoria = r["Categoria"].ToString(), ValorReais = valor.ToString("C"), DataFormatada = dataExibicao, Status = r["Status"].ToString() });
+                                lista.Add(new DespesaModel
+                                {
+                                    Id = Convert.ToInt32(r["Id"]),
+                                    Descricao = r["Descricao"]?.ToString() ?? "",
+                                    Categoria = r["Categoria"]?.ToString() ?? "",
+                                    ValorReais = valor.ToString("C"),
+                                    DataFormatada = dataExibicao,
+                                    Status = r["Status"]?.ToString() ?? ""
+                                });
                             }
                         }
                     }
@@ -398,13 +487,24 @@ namespace SistemaCaixaPDV
                         cmd.Parameters.AddWithValue("@id", id);
                         using (var r = cmd.ExecuteReader())
                         {
-                            if (r.Read()) return new DespesaModel { Id = Convert.ToInt32(r["Id"]), Descricao = r["Descricao"].ToString(), Categoria = r["Categoria"].ToString(), ValorReais = r["Valor"] == DBNull.Value ? "0" : Convert.ToDecimal(r["Valor"]).ToString("N2"), DataFormatada = r["DataVencimento"].ToString(), Status = r["Status"].ToString() };
+                            if (r.Read())
+                            {
+                                return new DespesaModel
+                                {
+                                    Id = Convert.ToInt32(r["Id"]),
+                                    Descricao = r["Descricao"]?.ToString() ?? "",
+                                    Categoria = r["Categoria"]?.ToString() ?? "",
+                                    ValorReais = r["Valor"] == DBNull.Value ? "0" : Convert.ToDecimal(r["Valor"]).ToString("N2"),
+                                    DataFormatada = r["DataVencimento"]?.ToString() ?? "",
+                                    Status = r["Status"]?.ToString() ?? ""
+                                };
+                            }
                         }
                     }
                 }
             }
             catch { }
-            return null;
+            return null!;
         }
 
         public static void SalvarContaReceber(int id, int clienteId, string clienteNome, string descricao, string tipoDoc, decimal valor, string dataVencimento)
@@ -453,17 +553,27 @@ namespace SistemaCaixaPDV
                             while (r.Read())
                             {
                                 decimal valor = r["Valor"] == DBNull.Value ? 0 : Convert.ToDecimal(r["Valor"]);
-                                string status = r["Status"].ToString();
+                                string status = r["Status"]?.ToString() ?? "";
                                 if (status == "Pendente") totalPendente += valor;
 
-                                string dataBanco = r["DataVencimento"].ToString();
+                                string dataBanco = r["DataVencimento"]?.ToString() ?? "";
                                 string dataTela = dataBanco;
                                 if (DateTime.TryParse(dataBanco, out DateTime dt)) dataTela = dt.ToString("dd/MM/yyyy");
 
                                 string tDoc = "Não Informado";
-                                try { tDoc = r["TipoDocumento"] == DBNull.Value ? "Carnê" : r["TipoDocumento"].ToString(); } catch { }
+                                try { tDoc = r["TipoDocumento"]?.ToString() ?? "Carnê"; } catch { }
 
-                                lista.Add(new ContasReceberModel { Id = Convert.ToInt32(r["Id"]), ClienteNome = r["ClienteNome"].ToString(), Descricao = r["Descricao"].ToString(), TipoDocumento = tDoc, Valor = valor, ValorFormatado = valor.ToString("C"), DataVencimentoFormatada = dataTela, Status = status });
+                                lista.Add(new ContasReceberModel
+                                {
+                                    Id = Convert.ToInt32(r["Id"]),
+                                    ClienteNome = r["ClienteNome"]?.ToString() ?? "",
+                                    Descricao = r["Descricao"]?.ToString() ?? "",
+                                    TipoDocumento = tDoc,
+                                    Valor = valor,
+                                    ValorFormatado = valor.ToString("C"),
+                                    DataVencimentoFormatada = dataTela,
+                                    Status = status
+                                });
                             }
                         }
                     }
@@ -487,18 +597,26 @@ namespace SistemaCaixaPDV
                         {
                             if (r.Read())
                             {
-                                string dataBanco = r["DataVencimento"].ToString();
+                                string dataBanco = r["DataVencimento"]?.ToString() ?? "";
                                 string tDoc = "Carnê/Promissória";
-                                try { tDoc = r["TipoDocumento"] == DBNull.Value ? "Carnê/Promissória" : r["TipoDocumento"].ToString(); } catch { }
+                                try { tDoc = r["TipoDocumento"]?.ToString() ?? "Carnê/Promissória"; } catch { }
 
-                                return new ContasReceberModel { Id = Convert.ToInt32(r["Id"]), ClienteNome = r["ClienteNome"].ToString(), Descricao = r["Descricao"].ToString(), TipoDocumento = tDoc, Valor = r["Valor"] == DBNull.Value ? 0 : Convert.ToDecimal(r["Valor"]), DataVencimentoFormatada = dataBanco };
+                                return new ContasReceberModel
+                                {
+                                    Id = Convert.ToInt32(r["Id"]),
+                                    ClienteNome = r["ClienteNome"]?.ToString() ?? "",
+                                    Descricao = r["Descricao"]?.ToString() ?? "",
+                                    TipoDocumento = tDoc,
+                                    Valor = r["Valor"] == DBNull.Value ? 0 : Convert.ToDecimal(r["Valor"]),
+                                    DataVencimentoFormatada = dataBanco
+                                };
                             }
                         }
                     }
                 }
             }
             catch { }
-            return null;
+            return null!;
         }
 
         public static void ExcluirContaReceber(int id)
@@ -520,10 +638,6 @@ namespace SistemaCaixaPDV
             catch { }
         }
 
-        // ===============================================================
-        // MÓDULO DE CADASTRO DE CLIENTES (AGORA COM CRÉDITO LIBERADO!)
-        // ===============================================================
-
         public static void SalvarCliente(ClienteCompleto c)
         {
             try
@@ -531,13 +645,13 @@ namespace SistemaCaixaPDV
                 using (var cx = new SqliteConnection(ConnectionString))
                 {
                     cx.Open();
-                    if (c.Id == 0) // Novo Cliente
+                    if (c.Id == 0)
                     {
                         string sql = @"INSERT INTO Clientes (Nome, CpfCnpj, Celular, TelefoneFixo, Tipo, Rg, Endereco, Numero, Complemento, Bairro, Cidade, Uf, Cep, Email, Observacoes, DataCadastro, CreditoLiberado) 
                                        VALUES (@nome, @cpf, @celular, @fixo, @tipo, @rg, @endereco, @numero, @complemento, @bairro, @cidade, @uf, @cep, @email, @obs, @data, @credito)";
                         using (var cmd = new SqliteCommand(sql, cx))
                         {
-                            cmd.Parameters.AddWithValue("@nome", c.Nome); cmd.Parameters.AddWithValue("@cpf", c.CpfCnpj ?? "");
+                            cmd.Parameters.AddWithValue("@nome", c.Nome ?? ""); cmd.Parameters.AddWithValue("@cpf", c.CpfCnpj ?? "");
                             cmd.Parameters.AddWithValue("@celular", c.Celular ?? ""); cmd.Parameters.AddWithValue("@fixo", c.TelefoneFixo ?? "");
                             cmd.Parameters.AddWithValue("@tipo", c.Tipo ?? "Física"); cmd.Parameters.AddWithValue("@rg", c.Rg ?? "");
                             cmd.Parameters.AddWithValue("@endereco", c.Endereco ?? ""); cmd.Parameters.AddWithValue("@numero", c.Numero ?? "SN");
@@ -549,14 +663,14 @@ namespace SistemaCaixaPDV
                             cmd.ExecuteNonQuery();
                         }
                     }
-                    else // Atualizar Cliente Existente
+                    else
                     {
                         string sql = @"UPDATE Clientes SET Nome=@nome, CpfCnpj=@cpf, Celular=@celular, TelefoneFixo=@fixo, Tipo=@tipo, Rg=@rg, 
                                        Endereco=@endereco, Numero=@numero, Complemento=@complemento, Bairro=@bairro, Cidade=@cidade, Uf=@uf, 
                                        Cep=@cep, Email=@email, Observacoes=@obs, CreditoLiberado=@credito WHERE Id=@id";
                         using (var cmd = new SqliteCommand(sql, cx))
                         {
-                            cmd.Parameters.AddWithValue("@nome", c.Nome); cmd.Parameters.AddWithValue("@cpf", c.CpfCnpj ?? "");
+                            cmd.Parameters.AddWithValue("@nome", c.Nome ?? ""); cmd.Parameters.AddWithValue("@cpf", c.CpfCnpj ?? "");
                             cmd.Parameters.AddWithValue("@celular", c.Celular ?? ""); cmd.Parameters.AddWithValue("@fixo", c.TelefoneFixo ?? "");
                             cmd.Parameters.AddWithValue("@tipo", c.Tipo ?? "Física"); cmd.Parameters.AddWithValue("@rg", c.Rg ?? "");
                             cmd.Parameters.AddWithValue("@endereco", c.Endereco ?? ""); cmd.Parameters.AddWithValue("@numero", c.Numero ?? "SN");
@@ -607,22 +721,22 @@ namespace SistemaCaixaPDV
                                 return new ClienteCompleto
                                 {
                                     Id = Convert.ToInt32(r["Id"]),
-                                    Nome = r["Nome"].ToString(),
-                                    CpfCnpj = r["CpfCnpj"]?.ToString(),
-                                    Rg = r["Rg"]?.ToString(),
-                                    TelefoneFixo = r["TelefoneFixo"]?.ToString(),
-                                    Celular = r["Celular"]?.ToString(),
-                                    Email = r["Email"]?.ToString(),
-                                    Cep = r["Cep"]?.ToString(),
-                                    Endereco = r["Endereco"]?.ToString(),
-                                    Numero = r["Numero"]?.ToString(),
-                                    Complemento = r["Complemento"]?.ToString(),
-                                    Bairro = r["Bairro"]?.ToString(),
-                                    Cidade = r["Cidade"]?.ToString(),
-                                    Uf = r["Uf"]?.ToString(),
-                                    Tipo = r["Tipo"]?.ToString(),
-                                    Observacoes = r["Observacoes"]?.ToString(),
-                                    DataCadastro = r["DataCadastro"]?.ToString(),
+                                    Nome = r["Nome"]?.ToString() ?? "",
+                                    CpfCnpj = r["CpfCnpj"]?.ToString() ?? "",
+                                    Rg = r["Rg"]?.ToString() ?? "",
+                                    TelefoneFixo = r["TelefoneFixo"]?.ToString() ?? "",
+                                    Celular = r["Celular"]?.ToString() ?? "",
+                                    Email = r["Email"]?.ToString() ?? "",
+                                    Cep = r["Cep"]?.ToString() ?? "",
+                                    Endereco = r["Endereco"]?.ToString() ?? "",
+                                    Numero = r["Numero"]?.ToString() ?? "",
+                                    Complemento = r["Complemento"]?.ToString() ?? "",
+                                    Bairro = r["Bairro"]?.ToString() ?? "",
+                                    Cidade = r["Cidade"]?.ToString() ?? "",
+                                    Uf = r["Uf"]?.ToString() ?? "",
+                                    Tipo = r["Tipo"]?.ToString() ?? "",
+                                    Observacoes = r["Observacoes"]?.ToString() ?? "",
+                                    DataCadastro = r["DataCadastro"]?.ToString() ?? "",
                                     CreditoLiberado = r["CreditoLiberado"] == DBNull.Value ? 0 : Convert.ToDecimal(r["CreditoLiberado"])
                                 };
                             }
@@ -631,12 +745,9 @@ namespace SistemaCaixaPDV
                 }
             }
             catch { }
-            return null;
+            return null!;
         }
 
-        // ===============================================================
-        // MÓDULO DE HISTÓRICO DO PRODUTO (VENDAS E COMPRAS)
-        // ===============================================================
         public static List<HistoricoVendaProdutoModel> ObterHistoricoVendasProduto(string codigoProduto, out decimal somaTotal, out decimal qtdTotal)
         {
             var lista = new List<HistoricoVendaProdutoModel>();
@@ -666,14 +777,14 @@ namespace SistemaCaixaPDV
                                 qtdTotal += qtd;
                                 somaTotal += tot;
 
-                                string dataBanco = r["DataHora"].ToString();
+                                string dataBanco = r["DataHora"]?.ToString() ?? "";
                                 if (DateTime.TryParse(dataBanco, out DateTime dt)) dataBanco = dt.ToString("dd/MM/yyyy HH:mm");
 
                                 lista.Add(new HistoricoVendaProdutoModel
                                 {
                                     DataVenda = dataBanco,
-                                    NumVenda = r["NumeroVenda"].ToString(),
-                                    Cliente = string.IsNullOrWhiteSpace(r["ClienteNome"].ToString()) ? "CONSUMIDOR FINAL" : r["ClienteNome"].ToString(),
+                                    NumVenda = r["NumeroVenda"]?.ToString() ?? "",
+                                    Cliente = string.IsNullOrWhiteSpace(r["ClienteNome"]?.ToString()) ? "CONSUMIDOR FINAL" : r["ClienteNome"]?.ToString() ?? "",
                                     Quantidade = qtd.ToString("N2"),
                                     ValorUnitario = un.ToString("C"),
                                     Total = tot.ToString("C")
@@ -740,14 +851,14 @@ namespace SistemaCaixaPDV
                                 decimal un = r["CustoUnitario"] == DBNull.Value ? 0 : Convert.ToDecimal(r["CustoUnitario"]);
                                 decimal tot = r["Total"] == DBNull.Value ? 0 : Convert.ToDecimal(r["Total"]);
 
-                                string dataBanco = r["DataCompra"].ToString();
+                                string dataBanco = r["DataCompra"]?.ToString() ?? "";
                                 if (DateTime.TryParse(dataBanco, out DateTime dt)) dataBanco = dt.ToString("dd/MM/yyyy HH:mm");
 
                                 lista.Add(new HistoricoCompraModel
                                 {
                                     DataCompra = dataBanco,
-                                    Fornecedor = r["Fornecedor"].ToString(),
-                                    NumeroNFe = r["NumeroNFe"].ToString(),
+                                    Fornecedor = r["Fornecedor"]?.ToString() ?? "",
+                                    NumeroNFe = r["NumeroNFe"]?.ToString() ?? "",
                                     Quantidade = qtd.ToString("N2"),
                                     CustoUnitario = un.ToString("C"),
                                     Total = tot.ToString("C")
@@ -815,15 +926,15 @@ namespace SistemaCaixaPDV
                             while (r.Read())
                             {
                                 decimal qtd = r["Quantidade"] == DBNull.Value ? 0 : Convert.ToDecimal(r["Quantidade"]);
-                                string dataBanco = r["DataHora"].ToString();
+                                string dataBanco = r["DataHora"]?.ToString() ?? "";
                                 if (DateTime.TryParse(dataBanco, out DateTime dt)) dataBanco = dt.ToString("dd/MM/yyyy HH:mm");
 
                                 lista.Add(new HistoricoEstoqueModel
                                 {
                                     DataHora = dataBanco,
-                                    Tipo = r["Tipo"].ToString(),
+                                    Tipo = r["Tipo"]?.ToString() ?? "",
                                     Quantidade = qtd.ToString("N2"),
-                                    Motivo = r["Motivo"].ToString()
+                                    Motivo = r["Motivo"]?.ToString() ?? ""
                                 });
                             }
                         }
@@ -859,26 +970,25 @@ namespace SistemaCaixaPDV
     public class RelatorioProdutoModel { public string Codigo { get; set; } = ""; public string Descricao { get; set; } = ""; public string Unidade { get; set; } = ""; public string PrecoVenda { get; set; } = ""; public string Estoque { get; set; } = ""; }
     public class RelatorioVendaModel { public string NumVenda { get; set; } = ""; public string DataVenda { get; set; } = ""; public string FormaPagto { get; set; } = ""; public string ValorTotal { get; set; } = ""; }
 
-    // AQUI ESTÁ A ATUALIZAÇÃO DO MODELO DE CLIENTE COM O CRÉDITO
     public class ClienteCompleto
     {
         public int Id { get; set; }
-        public string Nome { get; set; }
-        public string CpfCnpj { get; set; }
-        public string Rg { get; set; }
-        public string Celular { get; set; }
-        public string TelefoneFixo { get; set; }
-        public string Email { get; set; }
-        public string Cep { get; set; }
-        public string Endereco { get; set; }
-        public string Numero { get; set; }
-        public string Complemento { get; set; }
-        public string Bairro { get; set; }
-        public string Cidade { get; set; }
-        public string Uf { get; set; }
-        public string Tipo { get; set; }
-        public string Observacoes { get; set; }
-        public string DataCadastro { get; set; }
+        public string Nome { get; set; } = "";
+        public string CpfCnpj { get; set; } = "";
+        public string Rg { get; set; } = "";
+        public string Celular { get; set; } = "";
+        public string TelefoneFixo { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Cep { get; set; } = "";
+        public string Endereco { get; set; } = "";
+        public string Numero { get; set; } = "";
+        public string Complemento { get; set; } = "";
+        public string Bairro { get; set; } = "";
+        public string Cidade { get; set; } = "";
+        public string Uf { get; set; } = "";
+        public string Tipo { get; set; } = "";
+        public string Observacoes { get; set; } = "";
+        public string DataCadastro { get; set; } = "";
         public decimal CreditoLiberado { get; set; }
     }
 

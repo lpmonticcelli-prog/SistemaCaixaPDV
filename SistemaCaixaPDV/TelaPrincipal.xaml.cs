@@ -6,28 +6,29 @@ namespace SistemaCaixaPDV
 {
     public partial class TelaPrincipal : Window
     {
-        private DispatcherTimer timer;
+        // BLINDAGEM: Instanciação direta em readonly evita aviso CS8618 (Campo não anulável)
+        private readonly DispatcherTimer _timer = new DispatcherTimer();
 
         public TelaPrincipal()
         {
             InitializeComponent();
-            BancoDeDados.InicializarBanco(); // <--- INICIALIZAÇÃO SEGURA ADICIONADA AQUI!
+            BancoDeDados.InicializarBanco(); // Garante a integridade do SQLite antes de qualquer tela abrir
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // Inicia o relógio do Menu Principal
-            timer = new DispatcherTimer();
-            timer = new DispatcherTimer();
-            timer.Interval = TimeSpan.FromSeconds(1);
-            timer.Tick += Timer_Tick;
-            timer.Start();
+            // Inicia o relógio do Menu Principal (remoção da instanciação duplicada)
+            _timer.Interval = TimeSpan.FromSeconds(1);
+            _timer.Tick += Timer_Tick;
+            _timer.Start();
 
             // Escreve a data atual formatada (Ex: Segunda-feira, 01 de Janeiro de 2026)
             txtData.Text = DateTime.Now.ToString("dddd, dd 'de' MMMM 'de' yyyy");
-            Timer_Tick(null, null);
 
-            // Tenta puxar o nome da loja do banco de dados para mostrar no topo
+            // Primeira chamada extraída para método seguro (Evita injetar null, null em eventos)
+            AtualizarRelogio();
+
+            // Puxa o nome da loja do banco de dados para mostrar no topo
             try
             {
                 var config = BancoDeDados.ObterConfiguracoes();
@@ -36,10 +37,16 @@ namespace SistemaCaixaPDV
                     txtNomeLoja.Text = config.NomeLoja;
                 }
             }
-            catch { }
+            catch { /* Suprime falhas visuais não críticas no carregamento */ }
         }
 
-        private void Timer_Tick(object sender, EventArgs e)
+        // Assinatura do delegate adaptada para aceitar remetentes anuláveis (CS8622)
+        private void Timer_Tick(object? sender, EventArgs e)
+        {
+            AtualizarRelogio();
+        }
+
+        private void AtualizarRelogio()
         {
             txtRelogio.Text = DateTime.Now.ToString("HH:mm:ss");
         }
@@ -76,55 +83,55 @@ namespace SistemaCaixaPDV
         }
 
         // ==========================================
-        // BOTÕES EM CONSTRUÇÃO (Para não dar erro)
+        // MÓDULOS DO SISTEMA
         // ==========================================
 
         private void btnPdv_Click(object sender, RoutedEventArgs e)
         {
-            TelaPDV config = new TelaPDV();
-            config.ShowDialog();
+            TelaPDV tela = new TelaPDV();
+            tela.ShowDialog();
         }
 
         private void btnEmissorNFe_Click(object sender, RoutedEventArgs e)
         {
-            TelaEmissorNFe config = new TelaEmissorNFe();
-            config.ShowDialog();
+            TelaEmissorNFe tela = new TelaEmissorNFe();
+            tela.ShowDialog();
         }
 
         private void btnProdutos_Click(object sender, RoutedEventArgs e)
         {
-            TelaCadastroProduto config = new TelaCadastroProduto();
-            config.ShowDialog();
+            TelaCadastroProduto tela = new TelaCadastroProduto();
+            tela.ShowDialog();
         }
 
         private void btnClientes_Click(object sender, RoutedEventArgs e)
         {
-            TelaClientes config = new TelaClientes();
-            config.ShowDialog();
+            TelaClientes tela = new TelaClientes();
+            tela.ShowDialog();
         }
 
         private void btnRelatorios_Click(object sender, RoutedEventArgs e)
         {
-            TelaRelatorios config = new TelaRelatorios();
-            config.ShowDialog();
+            TelaRelatorios tela = new TelaRelatorios();
+            tela.ShowDialog();
         }
 
         private void btnCaixa_Click(object sender, RoutedEventArgs e)
         {
-            TelaFechamentoCaixa config = new TelaFechamentoCaixa();
-            config.ShowDialog();
+            TelaFechamentoCaixa tela = new TelaFechamentoCaixa();
+            tela.ShowDialog();
         }
 
         private void btnDespesas_Click(object sender, RoutedEventArgs e)
         {
-            TelaDespesas config = new TelaDespesas();
-            config.ShowDialog();
+            TelaDespesas tela = new TelaDespesas();
+            tela.ShowDialog();
         }
 
         private void btnReceber_Click(object sender, RoutedEventArgs e)
         {
-            TelaContasReceber config = new TelaContasReceber();
-            config.ShowDialog();
+            TelaContasReceber tela = new TelaContasReceber();
+            tela.ShowDialog();
         }
     }
 }

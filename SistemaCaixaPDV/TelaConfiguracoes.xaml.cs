@@ -1,25 +1,26 @@
 ﻿using System;
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using Microsoft.Win32;
 using Microsoft.Data.Sqlite;
-using System.Windows.Input; // Para detectar a tecla Enter
-using System.Net.Http;      // Para conectar na internet (API)
-using System.Threading.Tasks; // Para não travar a tela enquanto busca
-using System.Text.RegularExpressions; // Para extrair os dados do ViaCEP
-using System.Security.Cryptography.X509Certificates; // <--- NOVA BIBLIOTECA PARA TESTAR O CERTIFICADO!
+using System.Windows.Input;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Text.RegularExpressions;
+using System.Security.Cryptography.X509Certificates; // Necessário para X509CertificateLoader
 
 namespace SistemaCaixaPDV
 {
     public partial class TelaConfiguracoes : Window
     {
-        private string connectionString = BancoDeDados.ConnectionString;
+        private readonly string connectionString = BancoDeDados.ConnectionString;
 
-        private string caminhoFundoAtual = "";
-        private string caminhoLogoAtual = "";
-        private string caminhoBannerAtual = "";
-        private string caminhoCertificadoAtual = "";
+        private string caminhoFundoAtual = string.Empty;
+        private string caminhoLogoAtual = string.Empty;
+        private string caminhoBannerAtual = string.Empty;
+        private string caminhoCertificadoAtual = string.Empty;
 
         public TelaConfiguracoes()
         {
@@ -55,7 +56,7 @@ namespace SistemaCaixaPDV
 
                     using (var cmdCheck = new SqliteCommand("SELECT COUNT(*) FROM Configuracoes", cx))
                     {
-                        long count = (long)cmdCheck.ExecuteScalar();
+                        long count = (long)(cmdCheck.ExecuteScalar() ?? 0);
                         if (count == 0)
                         {
                             using (var cmdInsert = new SqliteCommand("INSERT INTO Configuracoes (NomeLoja) VALUES ('Restaurante Kit Sabor')", cx)) cmdInsert.ExecuteNonQuery();
@@ -82,9 +83,9 @@ namespace SistemaCaixaPDV
                                 string ufSalva = LerBancoSeguro(r, "Uf");
                                 if (!string.IsNullOrEmpty(ufSalva))
                                 {
-                                    foreach (System.Windows.Controls.ComboBoxItem item in cbUf.Items)
+                                    foreach (ComboBoxItem item in cbUf.Items)
                                     {
-                                        if (item.Content.ToString() == ufSalva) { cbUf.SelectedItem = item; break; }
+                                        if (item.Content?.ToString() == ufSalva) { cbUf.SelectedItem = item; break; }
                                     }
                                 }
 
@@ -110,9 +111,9 @@ namespace SistemaCaixaPDV
 
                                 string tipoImp = LerBancoSeguro(r, "TipoImpressora");
                                 if (string.IsNullOrEmpty(tipoImp)) tipoImp = "58mm";
-                                foreach (System.Windows.Controls.ComboBoxItem item in cbTipoImpressora.Items)
+                                foreach (ComboBoxItem item in cbTipoImpressora.Items)
                                 {
-                                    if (item.Content.ToString() == tipoImp) { cbTipoImpressora.SelectedItem = item; break; }
+                                    if (item.Content?.ToString() == tipoImp) { cbTipoImpressora.SelectedItem = item; break; }
                                 }
 
                                 caminhoFundoAtual = LerBancoSeguro(r, "CaminhoFundo");
@@ -131,28 +132,47 @@ namespace SistemaCaixaPDV
             catch (Exception ex) { MessageBox.Show("Erro ao carregar: " + ex.Message); }
         }
 
-        private string LerBancoSeguro(SqliteDataReader r, string coluna) { try { return r[coluna] == DBNull.Value ? "" : r[coluna].ToString(); } catch { return ""; } }
-        private void ExibirImagem(string caminho, System.Windows.Controls.Image controleImagem) { if (!string.IsNullOrEmpty(caminho) && File.Exists(caminho)) { try { controleImagem.Source = new BitmapImage(new Uri(caminho)); } catch { controleImagem.Source = null; } } else { controleImagem.Source = null; } }
+        private string LerBancoSeguro(SqliteDataReader r, string coluna)
+        {
+            try { return r[coluna] == DBNull.Value ? string.Empty : r[coluna].ToString() ?? string.Empty; }
+            catch { return string.Empty; }
+        }
+
+        private void ExibirImagem(string caminho, Image controleImagem)
+        {
+            if (!string.IsNullOrEmpty(caminho) && File.Exists(caminho))
+            {
+                try { controleImagem.Source = new BitmapImage(new Uri(caminho)); }
+                catch { controleImagem.Source = null; }
+            }
+            else
+            {
+                controleImagem.Source = null;
+            }
+        }
 
         private void btnFundo_Click(object sender, RoutedEventArgs e) { OpenFileDialog dlg = new OpenFileDialog { Filter = "Imagens|*.jpg;*.jpeg;*.png" }; if (dlg.ShowDialog() == true) { caminhoFundoAtual = dlg.FileName; txtCaminhoFundo.Text = caminhoFundoAtual; } }
-        private void btnRemoverFundo_Click(object sender, RoutedEventArgs e) { caminhoFundoAtual = ""; txtCaminhoFundo.Text = ""; }
+        private void btnRemoverFundo_Click(object sender, RoutedEventArgs e) { caminhoFundoAtual = string.Empty; txtCaminhoFundo.Text = string.Empty; }
         private void btnLogo_Click(object sender, RoutedEventArgs e) { OpenFileDialog dlg = new OpenFileDialog { Filter = "Imagens|*.png;*.jpg" }; if (dlg.ShowDialog() == true) { caminhoLogoAtual = dlg.FileName; ExibirImagem(caminhoLogoAtual, imgLogo); } }
         private void btnBanner_Click(object sender, RoutedEventArgs e) { OpenFileDialog dlg = new OpenFileDialog { Title = "Selecione o Banner", Filter = "Imagens|*.jpg;*.jpeg;*.png" }; if (dlg.ShowDialog() == true) { caminhoBannerAtual = dlg.FileName; ExibirImagem(caminhoBannerAtual, imgBannerPDV); } }
-        private void btnRemoverBanner_Click(object sender, RoutedEventArgs e) { caminhoBannerAtual = ""; imgBannerPDV.Source = null; }
+        private void btnRemoverBanner_Click(object sender, RoutedEventArgs e) { caminhoBannerAtual = string.Empty; imgBannerPDV.Source = null; }
         private void btnCertificado_Click(object sender, RoutedEventArgs e) { OpenFileDialog dlg = new OpenFileDialog { Title = "Selecione o Certificado A1", Filter = "Certificado Digital (*.pfx;*.p12)|*.pfx;*.p12" }; if (dlg.ShowDialog() == true) { caminhoCertificadoAtual = dlg.FileName; txtCaminhoCertificado.Text = caminhoCertificadoAtual; } }
 
         // ==========================================
-        // TESTE LOCAL DE CERTIFICADO (RESOLVIDO)
+        // TESTE LOCAL DE CERTIFICADO (ATUALIZADO .NET 9)
         // ==========================================
         private void btnTestarCertificado_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrEmpty(txtCaminhoCertificado.Text)) { MessageBox.Show("Selecione o arquivo primeiro!", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
+            if (string.IsNullOrEmpty(txtCaminhoCertificado.Text))
+            {
+                MessageBox.Show("Selecione o arquivo primeiro!", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
             try
             {
-                // O ecrã de configurações testa o certificado por conta própria agora!
-                var certificado = new X509Certificate2(txtCaminhoCertificado.Text, txtSenhaCertificado.Password);
-
+                // Correção do aviso SYSLIB0057 - Método moderno e blindado de carregamento de chave privada
+                var certificado = X509CertificateLoader.LoadPkcs12FromFile(txtCaminhoCertificado.Text, txtSenhaCertificado.Password);
                 MessageBox.Show($"Certificado validado com sucesso!\n\nTitular: {certificado.FriendlyName}\nValidade: {certificado.NotAfter:dd/MM/yyyy}", "Sucesso", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
@@ -190,14 +210,16 @@ namespace SistemaCaixaPDV
                         cmd.Parameters.AddWithValue("@cep", txtCep.Text.Trim());
                         cmd.Parameters.AddWithValue("@cid", txtCidade.Text.Trim());
 
-                        string ufSelecionada = cbUf.SelectedItem != null ? ((System.Windows.Controls.ComboBoxItem)cbUf.SelectedItem).Content.ToString() : "SP";
+                        // Correção de NullReferenceException (CS8602)
+                        string ufSelecionada = (cbUf.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "SP";
                         cmd.Parameters.AddWithValue("@uf", ufSelecionada);
 
                         cmd.Parameters.AddWithValue("@fundo", caminhoFundoAtual);
                         cmd.Parameters.AddWithValue("@logo", caminhoLogoAtual);
                         cmd.Parameters.AddWithValue("@banner", caminhoBannerAtual);
 
-                        string imp = cbTipoImpressora.SelectedItem != null ? ((System.Windows.Controls.ComboBoxItem)cbTipoImpressora.SelectedItem).Content.ToString() : "58mm";
+                        // Correção de NullReferenceException (CS8602)
+                        string imp = (cbTipoImpressora.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "58mm";
                         cmd.Parameters.AddWithValue("@imp", imp);
 
                         cmd.Parameters.AddWithValue("@senha", txtSenhaGerente.Password);
@@ -253,9 +275,10 @@ namespace SistemaCaixaPDV
             try
             {
                 txtRua.Text = "Buscando...";
-                txtCidade.Text = "";
-                txtBairro.Text = "";
+                txtCidade.Text = string.Empty;
+                txtBairro.Text = string.Empty;
 
+                // HttpClient é o padrão moderno, aposentando o WebClient
                 using (HttpClient client = new HttpClient())
                 {
                     string url = $"https://viacep.com.br/ws/{cep}/json/";
@@ -264,11 +287,10 @@ namespace SistemaCaixaPDV
                     if (jsonDaInternet.Contains("\"erro\": true") || jsonDaInternet.Contains("\"erro\":\"true\""))
                     {
                         MessageBox.Show("CEP não encontrado na base dos Correios!", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
-                        txtRua.Text = "";
+                        txtRua.Text = string.Empty;
                         return;
                     }
 
-                    // Extraindo os dados do texto JSON usando Regex (Bem mais leve e não trava o C#)
                     txtRua.Text = ExtrairValorJson(jsonDaInternet, "logradouro");
                     txtBairro.Text = ExtrairValorJson(jsonDaInternet, "bairro");
                     txtCidade.Text = ExtrairValorJson(jsonDaInternet, "localidade");
@@ -276,33 +298,30 @@ namespace SistemaCaixaPDV
 
                     string ufViaCep = ExtrairValorJson(jsonDaInternet, "uf");
 
-                    // Procura o Estado na ComboBox e seleciona sozinho
-                    foreach (System.Windows.Controls.ComboBoxItem item in cbUf.Items)
+                    foreach (ComboBoxItem item in cbUf.Items)
                     {
-                        if (item.Content.ToString() == ufViaCep)
+                        if (item.Content?.ToString() == ufViaCep)
                         {
                             cbUf.SelectedItem = item;
                             break;
                         }
                     }
 
-                    // Joga o cursor piscando direto pro campo do "Número"
                     txtNumero.Focus();
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Erro ao buscar o CEP. Sem conexão com a internet?\n\nDetalhes: " + ex.Message, "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
-                txtRua.Text = "";
+                txtRua.Text = string.Empty;
             }
         }
 
         private string ExtrairValorJson(string textoJson, string chave)
         {
-            // O robô que acha exatamente a palavra que queremos no meio da maçaroca do JSON
             string padrao = $"\"{chave}\":\\s*\"([^\"]+)\"";
             var match = Regex.Match(textoJson, padrao);
-            return match.Success ? match.Groups[1].Value : "";
+            return match.Success ? match.Groups[1].Value : string.Empty;
         }
     }
 }

@@ -9,13 +9,11 @@ namespace SistemaCaixaPDV
 {
     public partial class TelaEmissorNFe : Window
     {
-        // A lista mágica que guarda os produtos na memória da tela
         public ObservableCollection<ItemNFe> carrinhoDeProdutos { get; set; } = new ObservableCollection<ItemNFe>();
 
         public TelaEmissorNFe()
         {
             InitializeComponent();
-            // Conecta a lista de produtos visual à nossa lista na memória
             dgProdutosNFe.ItemsSource = carrinhoDeProdutos;
         }
 
@@ -27,7 +25,7 @@ namespace SistemaCaixaPDV
         }
 
         // ===============================================================
-        // BUSCAR CLIENTES NO BANCO DE DADOS (SUPER DETETIVE)
+        // BUSCAR CLIENTES NO BANCO DE DADOS
         // ===============================================================
         private void CarregarClientes()
         {
@@ -36,9 +34,6 @@ namespace SistemaCaixaPDV
                 using (var cx = new SqliteConnection(BancoDeDados.ConnectionString))
                 {
                     cx.Open();
-
-                    // 🚨 ATENÇÃO: Se a sua coluna de identificação não for 'Id', mude a palavra 'Id' abaixo (ex: para 'Codigo')
-                    // 🚨 ATENÇÃO: Se a sua coluna não for 'Nome', mude a palavra 'Nome' (ex: para 'RazaoSocial')
                     var cmd = new SqliteCommand("SELECT Id, Nome FROM Clientes ORDER BY Nome", cx);
 
                     using (var r = cmd.ExecuteReader())
@@ -50,16 +45,15 @@ namespace SistemaCaixaPDV
                         {
                             cbBuscarCliente.Items.Add(new ComboBoxItem
                             {
-                                Content = r["Nome"].ToString(),
-                                Tag = r["Id"].ToString() // <-- Lembre-se de mudar 'Id' aqui também se alterar no comando acima
+                                Content = r["Nome"]?.ToString() ?? "",
+                                Tag = r["Id"]?.ToString() ?? ""
                             });
                             quantidadeClientes++;
                         }
 
-                        // Se não der erro, mas vier vazio, ele avisa!
                         if (quantidadeClientes == 0)
                         {
-                            MessageBox.Show("Aviso: A busca funcionou, mas não há nenhum cliente registado no Banco de Dados!\nVá à tela de cadastro e crie um cliente de teste.", "Tabela Vazia", MessageBoxButton.OK, MessageBoxImage.Information);
+                            MessageBox.Show("Aviso: A busca funcionou, mas não há nenhum cliente registrado no Banco de Dados!\nVá à tela de cadastro e crie um cliente de teste.", "Tabela Vazia", MessageBoxButton.OK, MessageBoxImage.Information);
                         }
                     }
                 }
@@ -72,15 +66,14 @@ namespace SistemaCaixaPDV
 
         private void cbBuscarCliente_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (cbBuscarCliente.SelectedItem is ComboBoxItem item)
+            if (cbBuscarCliente.SelectedItem is ComboBoxItem item && item.Tag != null)
             {
-                string idCliente = item.Tag.ToString();
+                string idCliente = item.Tag.ToString() ?? "";
                 try
                 {
                     using (var cx = new SqliteConnection(BancoDeDados.ConnectionString))
                     {
                         cx.Open();
-                        // 🚨 ATENÇÃO: Se usou 'Codigo' no select acima, mude aqui de 'Id' para 'Codigo' também
                         var cmd = new SqliteCommand("SELECT * FROM Clientes WHERE Id = @id", cx);
                         cmd.Parameters.AddWithValue("@id", idCliente);
 
@@ -88,15 +81,15 @@ namespace SistemaCaixaPDV
                         {
                             if (r.Read())
                             {
-                                txtNomeCliente.Text = r["Nome"] != DBNull.Value ? r["Nome"].ToString() : "";
-                                txtCpfCnpjCliente.Text = r["CpfCnpj"] != DBNull.Value ? r["CpfCnpj"].ToString() : "";
-                                txtIeCliente.Text = r["Ie"] != DBNull.Value ? r["Ie"].ToString() : "";
-                                txtCepCliente.Text = r["Cep"] != DBNull.Value ? r["Cep"].ToString() : "";
-                                txtRuaCliente.Text = r["Rua"] != DBNull.Value ? r["Rua"].ToString() : "";
-                                txtNumeroCliente.Text = r["Numero"] != DBNull.Value ? r["Numero"].ToString() : "";
-                                txtBairroCliente.Text = r["Bairro"] != DBNull.Value ? r["Bairro"].ToString() : "";
-                                txtCidadeCliente.Text = r["Cidade"] != DBNull.Value ? r["Cidade"].ToString() : "";
-                                txtUfCliente.Text = r["Uf"] != DBNull.Value ? r["Uf"].ToString() : "";
+                                txtNomeCliente.Text = r["Nome"] == DBNull.Value ? "" : r["Nome"]?.ToString() ?? "";
+                                txtCpfCnpjCliente.Text = r["CpfCnpj"] == DBNull.Value ? "" : r["CpfCnpj"]?.ToString() ?? "";
+                                txtIeCliente.Text = r["Ie"] == DBNull.Value ? "" : r["Ie"]?.ToString() ?? "";
+                                txtCepCliente.Text = r["Cep"] == DBNull.Value ? "" : r["Cep"]?.ToString() ?? "";
+                                txtRuaCliente.Text = r["Rua"] == DBNull.Value ? "" : r["Rua"]?.ToString() ?? "";
+                                txtNumeroCliente.Text = r["Numero"] == DBNull.Value ? "" : r["Numero"]?.ToString() ?? "";
+                                txtBairroCliente.Text = r["Bairro"] == DBNull.Value ? "" : r["Bairro"]?.ToString() ?? "";
+                                txtCidadeCliente.Text = r["Cidade"] == DBNull.Value ? "" : r["Cidade"]?.ToString() ?? "";
+                                txtUfCliente.Text = r["Uf"] == DBNull.Value ? "" : r["Uf"]?.ToString() ?? "";
 
                                 if (string.IsNullOrEmpty(txtIeCliente.Text) || txtCpfCnpjCliente.Text.Length <= 14)
                                     chkIsentoIE.IsChecked = true;
@@ -114,7 +107,7 @@ namespace SistemaCaixaPDV
         }
 
         // ===============================================================
-        // BUSCAR PRODUTOS NO BANCO DE DADOS (JÁ FUNCIONANDO COM 'Codigo')
+        // BUSCAR PRODUTOS NO BANCO DE DADOS
         // ===============================================================
         private void CarregarProdutos()
         {
@@ -132,8 +125,8 @@ namespace SistemaCaixaPDV
                         {
                             cbBuscarProduto.Items.Add(new ComboBoxItem
                             {
-                                Content = r["Descricao"].ToString(),
-                                Tag = r["Codigo"].ToString()
+                                Content = r["Descricao"]?.ToString() ?? "",
+                                Tag = r["Codigo"]?.ToString() ?? ""
                             });
                         }
                     }
@@ -147,9 +140,9 @@ namespace SistemaCaixaPDV
 
         private void cbBuscarProduto_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (cbBuscarProduto.SelectedItem is ComboBoxItem item)
+            if (cbBuscarProduto.SelectedItem is ComboBoxItem item && item.Tag != null)
             {
-                string idProduto = item.Tag.ToString();
+                string idProduto = item.Tag.ToString() ?? "";
                 try
                 {
                     using (var cx = new SqliteConnection(BancoDeDados.ConnectionString))
@@ -162,12 +155,12 @@ namespace SistemaCaixaPDV
                         {
                             if (r.Read())
                             {
-                                txtProduto.Text = r["Descricao"] != DBNull.Value ? r["Descricao"].ToString() : "";
-                                txtNcm.Text = r["Ncm"] != DBNull.Value ? r["Ncm"].ToString() : "";
-                                txtValor.Text = r["Preco"] != DBNull.Value ? r["Preco"].ToString() : "0,00";
+                                txtProduto.Text = r["Descricao"] == DBNull.Value ? "" : r["Descricao"]?.ToString() ?? "";
+                                txtNcm.Text = r["Ncm"] == DBNull.Value ? "" : r["Ncm"]?.ToString() ?? "";
+                                txtValor.Text = r["Preco"] == DBNull.Value ? "0,00" : r["Preco"]?.ToString() ?? "0,00";
                                 txtQtd.Text = "1";
 
-                                CalcularTotalProduto(null, null);
+                                CalcularTotalProdutoLogica();
                             }
                         }
                     }
@@ -192,7 +185,7 @@ namespace SistemaCaixaPDV
                     new SqliteCommand("CREATE TABLE IF NOT EXISTS ControleNFe (Id INTEGER PRIMARY KEY, Serie INTEGER, Numero INTEGER)", cx).ExecuteNonQuery();
 
                     var cmdCheck = new SqliteCommand("SELECT COUNT(*) FROM ControleNFe", cx);
-                    if ((long)cmdCheck.ExecuteScalar() == 0)
+                    if (Convert.ToInt64(cmdCheck.ExecuteScalar() ?? 0) == 0)
                     {
                         new SqliteCommand("INSERT INTO ControleNFe (Serie, Numero) VALUES (1, 1)", cx).ExecuteNonQuery();
                     }
@@ -201,8 +194,8 @@ namespace SistemaCaixaPDV
                     {
                         if (r.Read())
                         {
-                            txtSerieNFe.Text = r["Serie"].ToString();
-                            txtNumeroNFe.Text = r["Numero"].ToString();
+                            txtSerieNFe.Text = r["Serie"]?.ToString() ?? "1";
+                            txtNumeroNFe.Text = r["Numero"]?.ToString() ?? "1";
                         }
                     }
                 }
@@ -256,6 +249,11 @@ namespace SistemaCaixaPDV
         // LÓGICA DO CARRINHO DE COMPRAS
         // ===============================================================
         private void CalcularTotalProduto(object sender, TextChangedEventArgs e)
+        {
+            CalcularTotalProdutoLogica();
+        }
+
+        private void CalcularTotalProdutoLogica()
         {
             if (txtQtd == null || txtValor == null || txtTotalItem == null) return;
 

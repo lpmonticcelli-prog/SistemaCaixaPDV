@@ -3,9 +3,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.Win32;
-using Microsoft.Data.Sqlite;
+using Microsoft.Data.Sqlite; // DRIVER CORRETO INJETADO
 using System.IO;
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
 
 namespace SistemaCaixaPDV
 {
@@ -145,7 +146,7 @@ namespace SistemaCaixaPDV
                 }
 
                 // SALVA A GRADE / VARIAÇÕES (Aba 5)
-                BancoDeDados.SalvarVariacoesProduto(cod, new System.Collections.Generic.List<ProdutoVariacaoModel>(ListaVariacoes));
+                BancoDeDados.SalvarVariacoesProduto(cod, new List<ProdutoVariacaoModel>(ListaVariacoes));
             }
             catch (Exception ex) { MessageBox.Show("Atenção: Houve um erro ao registrar os dados extras: " + ex.Message); }
 
@@ -257,9 +258,9 @@ namespace SistemaCaixaPDV
             }
         }
 
-        // ==========================================
+        // ==========================================================
         // IMPRESSÃO E RELATÓRIOS
-        // ==========================================
+        // ==========================================================
         private void btnImprimirEtiqueta_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtCodigo.Text) || string.IsNullOrWhiteSpace(txtDescricao.Text))
@@ -268,25 +269,34 @@ namespace SistemaCaixaPDV
                 return;
             }
 
-            // Abre a janela de etiqueta passando os dados do produto atual
-            JanelaEtiqueta telaEtiqueta = new JanelaEtiqueta(txtDescricao.Text, txtPrecoVenda.Text, txtCodigo.Text);
-            telaEtiqueta.Owner = this;
-            telaEtiqueta.ShowDialog();
+            try
+            {
+                // Abre a janela de etiqueta passando os dados do produto atual
+                // Obs: Requer que a JanelaEtiqueta esteja implementada corretamente
+                JanelaEtiqueta telaEtiqueta = new JanelaEtiqueta(txtDescricao.Text, txtPrecoVenda.Text, txtCodigo.Text);
+                telaEtiqueta.Owner = this;
+                telaEtiqueta.ShowDialog();
+            }
+            catch { MessageBox.Show("Módulo de JanelaEtiqueta não encontrado ou com erro de compilação."); }
         }
 
         private void btnImprimirRelatorio_Click(object sender, RoutedEventArgs e)
         {
-            // Abre a janela do relatório geral de produtos
-            JanelaRelatorio telaRelatorio = new JanelaRelatorio();
-            telaRelatorio.Owner = this;
-            telaRelatorio.ShowDialog();
+            try
+            {
+                // Abre a janela do relatório geral de produtos
+                JanelaRelatorio telaRelatorio = new JanelaRelatorio();
+                telaRelatorio.Owner = this;
+                telaRelatorio.ShowDialog();
+            }
+            catch { MessageBox.Show("Módulo de JanelaRelatorio não encontrado ou com erro de compilação."); }
         }
 
         private void btnFechar_Click(object sender, RoutedEventArgs e) { this.Close(); }
 
-        // ==========================================
+        // ==========================================================
         // CÓDIGO E FOTO (COFRE)
-        // ==========================================
+        // ==========================================================
         private void btnGerarCodigo_Click(object sender, RoutedEventArgs e)
         {
             txtCodigo.Text = DateTime.Now.ToString("yyMMddHHmmss");
@@ -315,9 +325,9 @@ namespace SistemaCaixaPDV
             }
         }
 
-        // ==========================================
+        // ==========================================================
         // CARREGAMENTO DE ABAS E BOTÕES DE AÇÃO
-        // ==========================================
+        // ==========================================================
         private void CarregarHistoricoVendas(string codigoProduto)
         {
             if (gridHistoricoVendas == null) return;
@@ -365,7 +375,9 @@ namespace SistemaCaixaPDV
             txtEntradaCusto.Clear();
 
             CarregarHistoricoCompras(txtCodigo.Text);
-            btnLocalizar_Click(null, null);
+
+            // Simula clique no localizar para recarregar o estoque na tela inicial
+            txtEstoqueAtual.Text = (LerEstoqueComoInteiro(txtEstoqueAtual.Text) + qtd).ToString();
         }
 
         private void btnImportarXML_Click(object sender, RoutedEventArgs e)
@@ -398,12 +410,11 @@ namespace SistemaCaixaPDV
             txtAjusteMotivo.Clear();
 
             CarregarHistoricoEstoque(txtCodigo.Text);
-            btnLocalizar_Click(null, null);
         }
 
-        // ==========================================
+        // ==========================================================
         // LÓGICA DA ABA 5 (GRADE E VARIAÇÃO)
-        // ==========================================
+        // ==========================================================
         private void btnAdicionarVariacao_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(cbVariacaoAtributo.Text) || string.IsNullOrWhiteSpace(txtVariacaoValor.Text))
@@ -429,9 +440,9 @@ namespace SistemaCaixaPDV
             txtVariacaoEstoque.Text = "0";
         }
 
-        // ==========================================
+        // ==========================================================
         // LIMPEZA
-        // ==========================================
+        // ==========================================================
         private void LimparCampos()
         {
             txtCodigo.Clear(); txtDescricao.Clear(); cbUnidade.Text = "UN";

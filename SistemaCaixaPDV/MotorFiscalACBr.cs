@@ -8,7 +8,7 @@ namespace SistemaCaixaPDV
 {
     public static class MotorFiscalACBr
     {
-        // CORREÇÃO PONTO 2: Comunicação ACBr agora feita dentro da raiz do sistema para evitar bloqueio de permissão do Windows (UAC)
+        // Comunicação ACBr agora feita dentro da raiz do sistema para evitar bloqueio de permissão do Windows (UAC)
         private static string pastaAcbr = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ACBr_Comm");
 
         public static void EnviarVendaParaACBr(List<ItemVenda> itens, decimal totalVenda, string formaPagamento, string cpfCliente = "")
@@ -90,6 +90,7 @@ namespace SistemaCaixaPDV
         // Tabela oficial da SEFAZ para meios de pagamento
         private static string ConverterFormaPagtoSefaz(string formaPagto)
         {
+            if (string.IsNullOrEmpty(formaPagto)) return "99";
             if (formaPagto.ToUpper().Contains("DINHEIRO")) return "01";
             if (formaPagto.ToUpper().Contains("CRÉDITO")) return "03";
             if (formaPagto.ToUpper().Contains("DÉBITO")) return "04";

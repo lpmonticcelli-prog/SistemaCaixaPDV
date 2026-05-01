@@ -1,10 +1,7 @@
 ﻿using DFe.Classes.Entidades;
 using DFe.Classes.Flags;
 using DFe.Utils;
-using Microsoft.Data.Sqlite;
-// =======================================================
-// BIBLIOTECAS DO ZEUS.NET.NFE
-// =======================================================
+using Microsoft.Data.Sqlite; // DRIVER CORRETO INJETADO
 using NFe.Classes.Informacoes;
 using NFe.Classes.Informacoes.Destinatario;
 using NFe.Classes.Informacoes.Detalhe;
@@ -43,9 +40,6 @@ namespace SistemaCaixaPDV
             catch { return ""; }
         }
 
-        // =========================================================================
-        // ATENÇÃO À NOVA ASSINATURA: ieCliente e isentoIe foram adicionados!
-        // =========================================================================
         public static bool EmitirNFeModelo55(
             string serie, int numeroNota, string cpfCnpj, string nomeCliente,
             string cep, string rua, string numeroEnd, string bairro, string cidade,
@@ -53,9 +47,6 @@ namespace SistemaCaixaPDV
         {
             try
             {
-                // ==============================================================================
-                // 1. LER DADOS EXATOS DA TELA DE CONFIGURAÇÕES
-                // ==============================================================================
                 string emitCnpj = "", emitNome = "", emitIe = "", emitUfStr = "";
                 string emitRua = "", emitNum = "", emitBairro = "", emitCidade = "", emitCep = "";
                 string caminhoCertificado = "", senhaCertificado = "";
@@ -93,16 +84,17 @@ namespace SistemaCaixaPDV
                 }
 
                 X509Certificate2 certificadoParaZeus = null;
-                try { certificadoParaZeus = new X509Certificate2(caminhoCertificado, senhaCertificado); }
+                try
+                {
+                    // Blindagem moderna contra obsoletos X509
+                    certificadoParaZeus = X509CertificateLoader.LoadPkcs12FromFile(caminhoCertificado, senhaCertificado);
+                }
                 catch (Exception ex)
                 {
                     MessageBox.Show("A senha do Certificado Digital está incorreta ou o ficheiro é inválido!\n\nDetalhes: " + ex.Message, "Erro no Certificado", MessageBoxButton.OK, MessageBoxImage.Error);
                     return false;
                 }
 
-                // ==============================================================================
-                // 2. CONFIGURAÇÃO GLOBAL
-                // ==============================================================================
                 string pastaSchemas = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Schemas");
                 if (!Directory.Exists(pastaSchemas)) Directory.CreateDirectory(pastaSchemas);
 
@@ -113,16 +105,12 @@ namespace SistemaCaixaPDV
                 ConfiguracaoServico.Instancia.tpAmb = TipoAmbiente.Producao;
                 ConfiguracaoServico.Instancia.tpEmis = TipoEmissao.teNormal;
                 ConfiguracaoServico.Instancia.ModeloDocumento = ModeloDocumento.NFe;
-                ConfiguracaoServico.Instancia.ProtocoloDeSeguranca = System.Net.SecurityProtocolType.Tls12;
                 ConfiguracaoServico.Instancia.Certificado.TipoCertificado = TipoCertificado.A1Arquivo;
                 ConfiguracaoServico.Instancia.Certificado.Arquivo = caminhoCertificado;
                 ConfiguracaoServico.Instancia.Certificado.Senha = senhaCertificado;
                 ConfiguracaoServico.Instancia.VersaoNFeAutorizacao = VersaoServico.Versao400;
                 ConfiguracaoServico.Instancia.VersaoNFeRetAutorizacao = VersaoServico.Versao400;
 
-                // ==============================================================================
-                // 3. MONTAGEM DA NOTA E DO EMITENTE
-                // ==============================================================================
                 string codigoNumericoAleatorio = new Random().Next(10000000, 99999999).ToString();
 
                 var nfe = new NFe.Classes.NFe { infNFe = new infNFe { versao = "4.00" } };
@@ -136,7 +124,7 @@ namespace SistemaCaixaPDV
                     serie = Convert.ToInt16(serie),
                     nNF = numeroNota,
                     tpNF = TipoNFe.tnSaida,
-                    cMunFG = 3523404, // IBGE ITATIBA
+                    cMunFG = 3523404, // IBGE
                     tpImp = TipoImpressao.tiRetrato,
                     tpEmis = TipoEmissao.teNormal,
                     tpAmb = TipoAmbiente.Producao,
@@ -167,24 +155,21 @@ namespace SistemaCaixaPDV
                     }
                 };
 
-                // ==============================================================================
-                // 4. DESTINATÁRIO (AGORA COM LÓGICA DE IE E ISENTO)
-                // ==============================================================================
                 var dest = new dest(VersaoServico.Versao400) { xNome = nomeCliente.Trim() };
 
                 string docLimpo = new string(cpfCnpj.Where(char.IsDigit).ToArray());
 
-                if (docLimpo.Length == 14) // SE FOR CNPJ
+                if (docLimpo.Length == 14)
                 {
                     dest.CNPJ = docLimpo;
 
                     if (isentoIe || (!string.IsNullOrEmpty(ieCliente) && ieCliente.ToUpper() == "ISENTO"))
                     {
-                        dest.indIEDest = indIEDest.Isento; // CNPJ Isento
+                        dest.indIEDest = indIEDest.Isento;
                     }
                     else if (!string.IsNullOrEmpty(ieCliente))
                     {
-                        dest.indIEDest = indIEDest.ContribuinteICMS; // CNPJ Normal
+                        dest.indIEDest = indIEDest.ContribuinteICMS;
                         dest.IE = new string(ieCliente.Where(char.IsDigit).ToArray());
                     }
                     else
@@ -192,10 +177,10 @@ namespace SistemaCaixaPDV
                         dest.indIEDest = indIEDest.NaoContribuinte;
                     }
                 }
-                else // SE FOR CPF
+                else
                 {
                     dest.CPF = docLimpo;
-                    dest.indIEDest = indIEDest.NaoContribuinte; // CPF sempre Não Contribuinte
+                    dest.indIEDest = indIEDest.NaoContribuinte;
                 }
 
                 dest.enderDest = new enderDest
@@ -210,9 +195,6 @@ namespace SistemaCaixaPDV
                 };
                 nfe.infNFe.dest = dest;
 
-                // ==============================================================================
-                // 5. PRODUTOS DO CARRINHO (COM PIS/COFINS)
-                // ==============================================================================
                 nfe.infNFe.det = new List<det>();
                 int numeroItem = 1; decimal valorTotalProdutos = 0;
 
@@ -246,9 +228,6 @@ namespace SistemaCaixaPDV
                     nfe.infNFe.det.Add(detalhe); valorTotalProdutos += item.Total; numeroItem++;
                 }
 
-                // ==============================================================================
-                // 6. TOTAIS E PAGAMENTO 
-                // ==============================================================================
                 var icmsTot = new ICMSTot
                 {
                     vBC = 0.00m,
@@ -289,9 +268,6 @@ namespace SistemaCaixaPDV
 
                 nfe.infNFe.transp = new transp { modFrete = ModalidadeFrete.mfSemFrete };
 
-                // ==============================================================================
-                // 7. ASSINATURA E ENVIO À SEFAZ
-                // ==============================================================================
                 nfe.Assina();
 
                 var servicoNFe = new ServicosNFe(ConfiguracaoServico.Instancia, certificadoParaZeus);
@@ -332,9 +308,6 @@ namespace SistemaCaixaPDV
             }
         }
 
-        // ==============================================================================
-        // O GERADOR DE DANFE SIMPLES (HTML)
-        // ==============================================================================
         private static void GerarDanfeSimplesHTML(NFe.Classes.nfeProc notaAprovada, string caminhoArquivoHtml)
         {
             try

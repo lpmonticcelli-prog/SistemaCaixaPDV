@@ -21,14 +21,14 @@
                 <CheckBox x:Name="chkVenda" Content="Venda" IsChecked="True" FontWeight="Bold" Margin="10,0,15,0" VerticalAlignment="Center" Click="chkTipoVenda_Click"/>
                 <CheckBox x:Name="chkOrcamento" Content="Orçamento" Margin="0,0,20,0" VerticalAlignment="Center" Click="chkTipoVenda_Click"/>
 
-                <Button Content="Adicionar end. entrega" Background="Transparent" BorderBrush="Black" BorderThickness="1" Padding="5,2" Margin="0,0,15,0" Cursor="Hand"/>
+                <Button x:Name="btnEndEntrega" Content="Adicionar end. entrega" Background="Transparent" BorderBrush="Black" BorderThickness="1" Padding="5,2" Margin="0,0,15,0" Cursor="Hand" Click="btnEndEntrega_Click"/>
 
-                <TextBlock Text="Abrir cad. cliente" FontWeight="Bold" Foreground="#2563EB" Margin="0,0,15,0" VerticalAlignment="Center" Cursor="Hand" MouseDown="lblAbrirCliente_MouseDown"/>
-                <TextBlock Text="Observações" FontWeight="Bold" Margin="0,0,15,0" VerticalAlignment="Center" Cursor="Hand"/>
-                <TextBlock Text="Imprimir Capa Carnê" FontWeight="Bold" Margin="0,0,20,0" VerticalAlignment="Center" Cursor="Hand"/>
-                <TextBlock Text="Configuração Tela Vendas" Foreground="Red" FontWeight="Bold" Margin="0,0,20,0" VerticalAlignment="Center" Cursor="Hand"/>
-                <TextBlock Text="AJUDA" FontWeight="Bold" Margin="0,0,10,0" VerticalAlignment="Center" Cursor="Hand"/>
-                <TextBlock Text="❌" Foreground="Red" FontWeight="Bold" VerticalAlignment="Center" Cursor="Hand" MouseDown="txtFechar_MouseDown"/>
+                <TextBlock x:Name="lblAbrirCliente" Text="Abrir cad. cliente" FontWeight="Bold" Foreground="#2563EB" Margin="0,0,15,0" VerticalAlignment="Center" Cursor="Hand" MouseDown="lblAbrirCliente_MouseDown"/>
+                <TextBlock x:Name="lblObservacoes" Text="Observações" FontWeight="Bold" Margin="0,0,15,0" VerticalAlignment="Center" Cursor="Hand" MouseDown="lblObservacoes_MouseDown"/>
+                <TextBlock x:Name="lblCapaCarne" Text="Imprimir Capa Carnê" FontWeight="Bold" Margin="0,0,20,0" VerticalAlignment="Center" Cursor="Hand" MouseDown="lblCapaCarne_MouseDown"/>
+                <TextBlock x:Name="lblConfiguracao" Text="Configuração Tela Vendas" Foreground="Red" FontWeight="Bold" Margin="0,0,20,0" VerticalAlignment="Center" Cursor="Hand" MouseDown="lblConfiguracao_MouseDown"/>
+                <TextBlock x:Name="lblAjuda" Text="AJUDA" FontWeight="Bold" Margin="0,0,10,0" VerticalAlignment="Center" Cursor="Hand" MouseDown="lblAjuda_MouseDown"/>
+                <TextBlock x:Name="txtFechar" Text="❌" Foreground="Red" FontWeight="Bold" VerticalAlignment="Center" Cursor="Hand" MouseDown="txtFechar_MouseDown"/>
             </StackPanel>
         </Border>
 

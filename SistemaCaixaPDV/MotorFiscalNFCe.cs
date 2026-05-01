@@ -1,10 +1,7 @@
 ﻿using DFe.Classes.Entidades;
 using DFe.Classes.Flags;
-// ==========================================
-// BIBLIOTECAS DO ZEUS
-// ==========================================
 using DFe.Utils;
-using Microsoft.Data.Sqlite;
+using Microsoft.Data.Sqlite; // DRIVER CORRETO INJETADO
 using NFe.Classes;
 using NFe.Classes.Informacoes;
 using NFe.Classes.Informacoes.Destinatario;
@@ -32,6 +29,7 @@ using System.IO;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using System.Windows;
+using System.Linq;
 
 namespace SistemaCaixaPDV
 {
@@ -220,11 +218,8 @@ namespace SistemaCaixaPDV
 
                 nfe.infNFe.transp = new transp { modFrete = ModalidadeFrete.mfSemFrete };
 
-                // ==============================================================
-                // ROTEAMENTO DE PAGAMENTO COM BLINDAGEM PIX / CARTÃO
-                // ==============================================================
                 FormaPagamento formaOficial = FormaPagamento.fpDinheiro;
-                string fPagLow = formaPagamentoTela.ToLower();
+                string fPagLow = string.IsNullOrEmpty(formaPagamentoTela) ? "" : formaPagamentoTela.ToLower();
 
                 if (fPagLow.Contains("pix")) formaOficial = (FormaPagamento)17;
                 else if (fPagLow.Contains("crédito") || fPagLow.Contains("credito")) formaOficial = FormaPagamento.fpCartaoCredito;
@@ -232,21 +227,19 @@ namespace SistemaCaixaPDV
 
                 var detalhePagamento = new detPag { tPag = formaOficial, vPag = valorTotalNf };
 
-                // A GAMBIARRA DO GOVERNO: Exige o bloco de cartão até quando é PIX (código 17)
                 if (formaOficial == FormaPagamento.fpCartaoCredito || formaOficial == FormaPagamento.fpCartaoDebito || formaOficial == (FormaPagamento)17)
                 {
                     detalhePagamento.card = new card { tpIntegra = (TipoIntegracaoPagamento)2 };
                 }
 
                 nfe.infNFe.pag = new List<pag> { new pag { detPag = new List<detPag> { detalhePagamento } } };
-                // ==============================================================
 
                 var configServico = ConfiguracaoServico.Instancia;
                 configServico.tpAmb = TipoAmbiente.Producao;
                 configServico.tpEmis = TipoEmissao.teNormal;
                 configServico.cUF = estEmitente;
                 configServico.ModeloDocumento = ModeloDocumento.NFCe;
-                configServico.DiretorioSchemas = @"C:\SistemaPDV\Schemas";
+                configServico.DiretorioSchemas = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Schemas");
                 configServico.VersaoNFeAutorizacao = VersaoServico.Versao400;
                 configServico.VersaoNFeRetAutorizacao = VersaoServico.Versao400;
                 configServico.TimeOut = 15000;
@@ -266,7 +259,7 @@ namespace SistemaCaixaPDV
                     catch { nfe.infNFeSupl.qrCode = nfe.infNFeSupl.ObterUrlQrCode(nfe, VersaoQrCode.QrCodeVersao2, "000001", "012345678901234567890123456789012345", configServico.Certificado); }
                 }
 
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                // Proteção contra ServicePointManager obsoleto, resolvendo via HttpClient internamente
                 var servicosNFe = new ServicosNFe(configServico);
                 var retorno = servicosNFe.NFeAutorizacao(numero, IndicadorSincronizacao.Sincrono, new List<NFe.Classes.NFe> { nfe });
 
@@ -275,7 +268,7 @@ namespace SistemaCaixaPDV
 
                 if (statusSefaz == "100")
                 {
-                    string pastaXml = @"C:\SistemaPDV\XML_Gerados\NFCe";
+                    string pastaXml = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "XML_Gerados", "NFCe");
                     if (!Directory.Exists(pastaXml)) Directory.CreateDirectory(pastaXml);
 
                     string chaveAcesso = retorno.Retorno.protNFe.infProt.chNFe;

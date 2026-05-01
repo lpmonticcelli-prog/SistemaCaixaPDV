@@ -1,20 +1,20 @@
 ﻿<Window x:Class="SistemaCaixaPDV.TelaOrdemServico"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Ordem de Serviço - PDV WV Sys" Height="768" Width="1366" 
+        Title="Ordem de Serviço - PDV" Height="768" Width="1366" 
         WindowStartupLocation="CenterScreen" WindowState="Maximized" Background="#F0F0F0"
         KeyDown="Window_KeyDown">
 
     <DockPanel>
         <ToolBar DockPanel.Dock="Top" Height="60" Background="White" FontSize="14" Padding="5">
-            <Button x:Name="btnNovaOS" Content="Nova OS - F2" Width="100" Margin="5,0" FontWeight="Bold"/>
-            <Button x:Name="btnSalvarOS" Content="Salvar OS - F4" Width="110" Margin="5,0" />
-            <Button x:Name="btnLocOS" Content="Loc. OS - F9" Width="100" Margin="5,0"/>
+            <Button x:Name="btnNovaOS" Content="Nova OS - F2" Width="100" Margin="5,0" FontWeight="Bold" Click="btnNovaOS_Click"/>
+            <Button x:Name="btnSalvarOS" Content="Salvar OS - F4" Width="110" Margin="5,0" Click="btnSalvarOS_Click"/>
+            <Button x:Name="btnLocOS" Content="Loc. OS - F9" Width="100" Margin="5,0" Click="btnLocOS_Click"/>
             <Separator Margin="10,0"/>
-            <Button x:Name="btnImprimirA4" Content="Impr OS A4 - F6" Width="120" Margin="5,0"/>
-            <Button x:Name="btnImprimir58" Content="Impr Cupom 58mm" Width="130" Margin="5,0"/>
+            <Button x:Name="btnImprimirA4" Content="Impr OS A4 - F6" Width="120" Margin="5,0" Click="btnImprimirA4_Click"/>
+            <Button x:Name="btnImprimir58" Content="Impr Cupom 58mm" Width="130" Margin="5,0" Click="btnImprimir58_Click"/>
             <Separator Margin="10,0"/>
-            <Button x:Name="btnWhatsApp" Content="Enviar WhatsApp" Width="130" Margin="5,0" Foreground="Green" FontWeight="Bold"/>
+            <Button x:Name="btnWhatsApp" Content="Enviar WhatsApp" Width="130" Margin="5,0" Foreground="Green" FontWeight="Bold" Click="btnWhatsApp_Click"/>
             <Button x:Name="btnSair" Content="SAIR - ESC" Width="90" Margin="20,0,0,0" Foreground="Red" FontWeight="Bold" Click="btnSair_Click"/>
         </ToolBar>
 
@@ -25,8 +25,8 @@
                     <TextBox x:Name="txtTotalBruto" IsReadOnly="True" FontSize="18" FontWeight="Bold" TextAlignment="Center" Text="R$ 0,00"/>
                 </StackPanel>
                 <StackPanel Margin="5,0">
-                    <TextBlock Text="DESCONTO" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
-                    <TextBox x:Name="txtDesconto" FontSize="18" FontWeight="Bold" Foreground="Blue" TextAlignment="Center" Text="R$ 0,00"/>
+                    <TextBlock Text="DESCONTO (R$)" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBox x:Name="txtDesconto" FontSize="18" FontWeight="Bold" Foreground="Blue" TextAlignment="Center" Text="0,00" TextChanged="txtDesconto_TextChanged"/>
                 </StackPanel>
                 <StackPanel Margin="5,0">
                     <TextBlock Text="TOTAL LÍQUIDO" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
@@ -66,7 +66,7 @@
 
                 <StackPanel Grid.Column="0" Margin="0,0,10,0">
                     <TextBlock Text="Nº OS:" FontWeight="Bold"/>
-                    <TextBox x:Name="txtNumOS" FontSize="16" FontWeight="Bold" IsReadOnly="True" Background="#EAEAEA" TextAlignment="Center" Text="1"/>
+                    <TextBox x:Name="txtNumOS" FontSize="16" FontWeight="Bold" IsReadOnly="True" Background="#EAEAEA" TextAlignment="Center" Text="0"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Margin="0,0,10,0">
@@ -134,16 +134,16 @@
                             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5">
                                 <TextBlock Text="Cód/Código Barras:" VerticalAlignment="Center" Margin="0,0,5,0"/>
                                 <TextBox x:Name="txtBuscaProdutoOS" Width="200" FontSize="14" Padding="2" KeyDown="txtBuscaProdutoOS_KeyDown"/>
-                                <TextBlock Text="(Aperte Enter)" Foreground="Gray" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                                <TextBlock Text="(Aperte Enter para buscar)" Foreground="Gray" VerticalAlignment="Center" Margin="5,0,0,0"/>
                             </StackPanel>
 
-                            <DataGrid x:Name="gridItensOS" Grid.Row="1" AutoGenerateColumns="False" CanUserAddRows="False" AlternatingRowBackground="#F9F9F9" HeadersVisibility="Column">
+                            <DataGrid x:Name="gridItensOS" Grid.Row="1" AutoGenerateColumns="False" CanUserAddRows="False" AlternatingRowBackground="#F9F9F9" HeadersVisibility="Column" CellEditEnding="gridItensOS_CellEditEnding">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Código" Binding="{Binding Codigo}" Width="80" IsReadOnly="True"/>
                                     <DataGridTextColumn Header="Descrição" Binding="{Binding Descricao}" Width="*" IsReadOnly="True"/>
                                     <DataGridTextColumn Header="Un" Binding="{Binding Unidade}" Width="50" IsReadOnly="True"/>
-                                    <DataGridTextColumn Header="Qtde" Binding="{Binding Quantidade}" Width="80"/>
-                                    <DataGridTextColumn Header="Pc. Unitário" Binding="{Binding ValorUnitario, StringFormat=C}" Width="100"/>
+                                    <DataGridTextColumn Header="Qtde" Binding="{Binding Quantidade, UpdateSourceTrigger=PropertyChanged}" Width="80"/>
+                                    <DataGridTextColumn Header="Pc. Unitário" Binding="{Binding ValorUnitario, StringFormat=C, UpdateSourceTrigger=PropertyChanged}" Width="100"/>
                                     <DataGridTextColumn Header="Total Líquido" Binding="{Binding Subtotal, StringFormat=C}" Width="120" IsReadOnly="True"/>
                                 </DataGrid.Columns>
                             </DataGrid>
@@ -170,22 +170,22 @@
 
                             <GroupBox Header="Acessórios Deixados" Margin="0,10,0,0" FontWeight="Bold">
                                 <StackPanel Margin="5">
-                                    <CheckBox Content="Carregador / Fonte" Margin="0,2"/>
-                                    <CheckBox Content="Cabo USB" Margin="0,2"/>
-                                    <CheckBox Content="Capa / Película" Margin="0,2"/>
-                                    <CheckBox Content="Bateria" Margin="0,2"/>
-                                    <CheckBox Content="Caixa Original" Margin="0,2"/>
+                                    <CheckBox x:Name="chkCarregador" Content="Carregador / Fonte" Margin="0,2"/>
+                                    <CheckBox x:Name="chkCaboUsb" Content="Cabo USB" Margin="0,2"/>
+                                    <CheckBox x:Name="chkCapaPelicula" Content="Capa / Película" Margin="0,2"/>
+                                    <CheckBox x:Name="chkBateria" Content="Bateria" Margin="0,2"/>
+                                    <CheckBox x:Name="chkCaixa" Content="Caixa Original" Margin="0,2"/>
                                 </StackPanel>
                             </GroupBox>
                         </StackPanel>
                     </TabItem>
                     <TabItem Header="Check List">
                         <StackPanel Margin="10">
-                            <CheckBox Content="Equipamento Liga?" FontWeight="Bold" Margin="0,5"/>
-                            <CheckBox Content="Tela/Display intactos?" Margin="0,5"/>
-                            <CheckBox Content="Conector de carga ok?" Margin="0,5"/>
-                            <CheckBox Content="Senhas fornecidas?" Margin="0,5"/>
-                            <CheckBox Content="Garantia vigente?" Margin="0,5"/>
+                            <CheckBox x:Name="chkEquipamentoLiga" Content="Equipamento Liga?" FontWeight="Bold" Margin="0,5"/>
+                            <CheckBox x:Name="chkTelaIntacta" Content="Tela/Display intactos?" Margin="0,5"/>
+                            <CheckBox x:Name="chkConectorCarga" Content="Conector de carga ok?" Margin="0,5"/>
+                            <CheckBox x:Name="chkSenhasFornecidas" Content="Senhas fornecidas?" Margin="0,5"/>
+                            <CheckBox x:Name="chkGarantiaVigente" Content="Garantia vigente?" Margin="0,5"/>
                         </StackPanel>
                     </TabItem>
                 </TabControl>
